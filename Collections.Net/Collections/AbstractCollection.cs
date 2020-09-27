@@ -1,7 +1,26 @@
-﻿using Collections.Net.Helpers;
+﻿// ***********************************************************************
+// Assembly         : Collections.Net
+// Component        : AbstractCollection.cs
+// Author           : Christian Webber
+// Created          : 2020-09-27
+//
+// Version          : 1.0.0
+// Last Modified By : Christian Webber
+// Last Modified On : 2020-09-27
+// ***********************************************************************
+// <copyright file="AbstractCollection.cs">
+//     Copyright © 2020
+// </copyright>
+// <summary>
+//     An abstract definition for a collection
+// </summary>
+//
+// Changelog:
+//            - 1.0.0 (2020-09-27) - Initial commit.
+// ***********************************************************************
+
+using Collections.Net.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace Collections.Net.Collections

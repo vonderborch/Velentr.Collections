@@ -1,2 +1,2 @@
-# LockFree.Net
-A collection of lock free data structures
+# Collections.Net
+A collection of data structures
