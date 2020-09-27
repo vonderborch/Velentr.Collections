@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// Assembly         : LockFree.Net
+// Assembly         : Collections.Net
 // Component        : Node.cs
 // Author           : Christian Webber
 // Created          : 2020-09-27
@@ -19,7 +19,7 @@
 //            - 1.0.0 (2020-09-27) - Initial commit.
 // ***********************************************************************
 
-namespace LockFree.Net.Objects
+namespace Collections.Net.Objects
 {
     public class Node<T>
     {

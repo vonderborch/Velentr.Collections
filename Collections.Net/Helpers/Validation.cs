@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// Assembly         : LockFree.Net
+// Assembly         : Collections.Net
 // Component        : Validation.cs
 // Author           : Christian Webber
 // Created          : 2020-09-27
@@ -21,7 +21,7 @@
 
 using System;
 
-namespace LockFree.Net.Helpers
+namespace Collections.Net.Helpers
 {
     public static class Validation
     {

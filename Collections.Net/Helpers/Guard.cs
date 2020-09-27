@@ -1,6 +1,6 @@
 ﻿// ***********************************************************************
-// Assembly         : LockFree.Net
-// Component        : NodeCreationSettings.cs
+// Assembly         : Collections.Net
+// Component        : Guard.cs
 // Author           : Christian Webber
 // Created          : 2020-09-27
 //
@@ -8,25 +8,36 @@
 // Last Modified By : Christian Webber
 // Last Modified On : 2020-09-27
 // ***********************************************************************
-// <copyright file="NodeCreationSettings.cs">
+// <copyright file="Guard.cs">
 //     Copyright © 2020
 // </copyright>
 // <summary>
-//     Settings for node creation
+//     A thread-safe boolean flag
 // </summary>
 //
 // Changelog:
 //            - 1.0.0 (2020-09-27) - Initial commit.
 // ***********************************************************************
 
-namespace LockFree.Net.Objects
+using System.Threading;
+
+namespace Collections.Net.Helpers
 {
-    public enum NodeCreationSettings
+    public class Guard
     {
-        PointToNull = 0,
+        public const int FALSE = 0;
 
-        PointNewNodeToOldNode = 1,
+        private const int TRUE = 1;
 
-        PointOldNodeToNewNode = 2,
+        private int _state = FALSE;
+
+        public bool Check => _state == TRUE;
+
+        public bool CheckSet => Interlocked.Exchange(ref _state, TRUE) == FALSE;
+
+        public void Reset()
+        {
+            Interlocked.Exchange(ref _state, FALSE);
+        }
     }
 }
