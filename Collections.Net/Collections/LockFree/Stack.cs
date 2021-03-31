@@ -23,7 +23,13 @@ namespace Collections.Net.Collections.LockFree
             Push(item);
         }
 
-        public override void Clear(bool disposeOldStack = true)
+        public override void Dispose()
+        {
+            Clear();
+            _head = null;
+        }
+
+        public void Clear(bool disposeOldStack = true)
         {
             // reset the stack
             Node<T> oldHead;
@@ -41,6 +47,11 @@ namespace Collections.Net.Collections.LockFree
             {
                 InternalDisposeNodes(oldHead);
             }
+        }
+
+        public override void Clear()
+        {
+            Clear(true);
         }
 
         private void InternalDisposeNodes(Node<T> head)
