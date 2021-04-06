@@ -1,30 +1,17 @@
-﻿// ***********************************************************************
-// Assembly         : Collections.Net
-// Component        : Validation.cs
-// Author           : Christian Webber
-// Created          : 2020-09-27
-//
-// Version          : 1.0.0
-// Last Modified By : Christian Webber
-// Last Modified On : 2020-09-27
-// ***********************************************************************
-// <copyright file="Validation.cs">
-//     Copyright © 2020
-// </copyright>
-// <summary>
-//     A collection of various Atomic operations
-// </summary>
-//
-// Changelog:
-//            - 1.0.0 (2020-09-27) - Initial commit.
-// ***********************************************************************
-
-using System;
+﻿using System;
 
 namespace Collections.Net.Helpers
 {
     public static class Validation
     {
+        /// <summary>
+        /// Validates the range.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <param name="minValue">The minimum value.</param>
+        /// <param name="maxValue">The maximum value.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The parameter [{parameterName}] is out of the range (min: {minValue}, max:{maxValue})!</exception>
         public static void ValidateRange(int value, string parameterName, int minValue = int.MinValue, int maxValue = int.MaxValue)
         {
             if (minValue > value || value > maxValue)
@@ -33,6 +20,14 @@ namespace Collections.Net.Helpers
             }
         }
 
+        /// <summary>
+        /// Validates the range.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <param name="minValue">The minimum value.</param>
+        /// <param name="maxValue">The maximum value.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The parameter [{parameterName}] is out of the range (min: {minValue}, max:{maxValue})!</exception>
         public static void ValidateRange(long value, string parameterName, long minValue = long.MinValue, long maxValue = long.MaxValue)
         {
             if (minValue > value || value > maxValue)
@@ -41,6 +36,12 @@ namespace Collections.Net.Helpers
             }
         }
 
+        /// <summary>
+        /// Nots the null or white space check.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <exception cref="ArgumentException"></exception>
         public static void NotNullOrWhiteSpaceCheck(string value, string parameterName)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -49,6 +50,12 @@ namespace Collections.Net.Helpers
             }
         }
 
+        /// <summary>
+        /// Nots the null or empty check.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <exception cref="ArgumentException"></exception>
         public static void NotNullOrEmptyCheck(string value, string parameterName)
         {
             if (string.IsNullOrEmpty(value))
