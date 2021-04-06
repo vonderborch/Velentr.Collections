@@ -10,6 +10,7 @@
     <Description>A variety of helpful collections.</Description>
     <PackageProjectUrl>https://github.com/vonderborch/Velentr.Input</PackageProjectUrl>
     <PackageTags>Collections, Lock-Free, Concurrent</PackageTags>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-﻿namespace Collections.Net.CollectionActions
+﻿namespace Velentr.Collections.CollectionActions
 {
     /// <summary>
     /// Actions to take when a pool is full.

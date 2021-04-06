@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace Collections.Net.Helpers
+namespace Velentr.Collections.Helpers
 {
     /// <summary>
     /// 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Collections.Net.Helpers
+namespace Velentr.Collections.Helpers
 {
     public static class Validation
     {

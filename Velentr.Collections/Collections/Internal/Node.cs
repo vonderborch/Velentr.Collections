@@ -1,7 +1,7 @@
 ﻿using System;
-using Collections.Net.Helpers;
+using Velentr.Collections.Helpers;
 
-namespace Collections.Net.Collections.Internal
+namespace Velentr.Collections.Collections.Internal
 {
     /// <summary>
     /// A singly-linked node

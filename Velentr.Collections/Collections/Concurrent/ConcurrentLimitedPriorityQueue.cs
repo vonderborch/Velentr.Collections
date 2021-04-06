@@ -2,11 +2,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Collections.Net.Collections.LockFree;
-using Collections.Net.Exceptions;
-using Collections.Net.PriorityConverters;
+using Velentr.Collections.Collections.LockFree;
+using Velentr.Collections.Exceptions;
+using Velentr.Collections.PriorityConverters;
 
-namespace Collections.Net.Collections.Concurrent
+namespace Velentr.Collections.Collections.Concurrent
 {
     /// <summary>
     /// Defines a Concurrent Priority Queue Collection (FIFO).

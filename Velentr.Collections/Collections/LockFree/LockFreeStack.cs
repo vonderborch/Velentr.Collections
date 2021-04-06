@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Collections.Net.Collections.Internal;
-using Collections.Net.Exceptions;
-using Collections.Net.Helpers;
+using Velentr.Collections.Collections.Internal;
+using Velentr.Collections.Exceptions;
+using Velentr.Collections.Helpers;
 
-namespace Collections.Net.Collections.LockFree
+namespace Velentr.Collections.Collections.LockFree
 {
     /// <summary>
     /// Defines a Lock-Free Stack Collection (FILO).

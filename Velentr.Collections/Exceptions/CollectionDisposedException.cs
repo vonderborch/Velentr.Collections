@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Collections.Net.Exceptions
+namespace Velentr.Collections.Exceptions
 {
     /// <summary>
     /// Defines an Exception that occurs when a collection is disposed and an attempt to use it occurs.

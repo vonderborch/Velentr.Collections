@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Collections.Net.Exceptions;
-using Collections.Net.Helpers;
+using Velentr.Collections.Exceptions;
+using Velentr.Collections.Helpers;
 
-namespace Collections.Net.Collections
+namespace Velentr.Collections.Collections
 {
 
     /// <summary>

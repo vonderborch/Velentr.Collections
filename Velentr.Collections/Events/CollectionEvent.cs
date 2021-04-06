@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Collections.Net.Events
+namespace Velentr.Collections.Events
 {
 
     /// <summary>

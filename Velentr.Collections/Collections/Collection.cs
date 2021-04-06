@@ -1,8 +1,8 @@
-﻿using Collections.Net.Helpers;
-using System;
+﻿using System;
 using System.Threading;
+using Velentr.Collections.Helpers;
 
-namespace Collections.Net.Collections
+namespace Velentr.Collections.Collections
 {
     /// <summary>
     /// An abstract Collection

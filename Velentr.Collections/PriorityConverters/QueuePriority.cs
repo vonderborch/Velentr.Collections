@@ -1,4 +1,4 @@
-﻿namespace Collections.Net.PriorityConverters
+﻿namespace Velentr.Collections.PriorityConverters
 {
     /// <summary>
     /// Defines valid queue priorities.

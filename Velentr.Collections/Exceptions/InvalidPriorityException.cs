@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Collections.Net.Exceptions
+namespace Velentr.Collections.Exceptions
 {
     /// <summary>
     /// Defines an Exception that occurs with Priority Queues when the requested priority is invalid.

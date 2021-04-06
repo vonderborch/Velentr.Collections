@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Collections.Net.Exceptions
+namespace Velentr.Collections.Exceptions
 {
     /// <summary>
     /// Defines an Exception that occurs when a collection is modified while enumerating through it.

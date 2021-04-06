@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Collections.Net.Events
+namespace Velentr.Collections.Events
 {
     /// <summary>
     /// Event arguments for Pool Collection events.

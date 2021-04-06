@@ -21,7 +21,7 @@
 
 using System.Threading;
 
-namespace Collections.Net.Helpers
+namespace Velentr.Collections.Helpers
 {
     public static class AtomicOperations
     {

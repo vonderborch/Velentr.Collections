@@ -2,10 +2,10 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
-using Collections.Net.CollectionActions;
-using Collections.Net.Events;
+using Velentr.Collections.CollectionActions;
+using Velentr.Collections.Events;
 
-namespace Collections.Net.Collections.LockFree
+namespace Velentr.Collections.Collections.Concurrent
 {
 
     /// <summary>

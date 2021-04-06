@@ -2,9 +2,9 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Collections.Net.Helpers;
+using Velentr.Collections.Helpers;
 
-namespace Collections.Net.Collections
+namespace Velentr.Collections.Collections
 {
 
     /// <summary>

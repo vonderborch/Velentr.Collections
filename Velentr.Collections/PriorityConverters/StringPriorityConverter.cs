@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Collections.Net.PriorityConverters
+namespace Velentr.Collections.PriorityConverters
 {
     /// <summary>
     /// Defines a string priority converter for Priority Queues.

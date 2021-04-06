@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Collections.Net.Exceptions;
-using Collections.Net.PriorityConverters;
+using Velentr.Collections.Exceptions;
+using Velentr.Collections.PriorityConverters;
 
-namespace Collections.Net.Collections.LockFree
+namespace Velentr.Collections.Collections.LockFree
 {
     /// <summary>
     /// Defines a Lock-Free Priority Queue Collection (FIFO).

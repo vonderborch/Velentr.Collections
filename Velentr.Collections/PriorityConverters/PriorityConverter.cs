@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Collections.Net.Exceptions;
+using Velentr.Collections.Exceptions;
 
-namespace Collections.Net.PriorityConverters
+namespace Velentr.Collections.PriorityConverters
 {
     /// <summary>
     /// Defines a priority converter for Priority Queues.

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Linq;
 
-namespace Collections.Net.Helpers
+namespace Velentr.Collections.Helpers
 {
     public static class Helper
     {
