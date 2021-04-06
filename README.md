@@ -1,8 +1,8 @@
-# Collections.Net
+# Velentr.Collections
 A variety of helpful collections.
 
 # Installation
-A nuget package is available: [Collections.Net](https://www.nuget.org/packages/Collections.Net/)
+A nuget package is available: [Velentr.Collections](https://www.nuget.org/packages/Velentr.Collections/)
 
 # Available Collections
 - Concurrent: _Collections under this namespace utilize .NET Concurrent collections internally_
@@ -19,4 +19,4 @@ A nuget package is available: [Collections.Net](https://www.nuget.org/packages/C
 - Cache: A Thread-Safe and Lock-Free dictionary optimized for reads
 
 # Future Plans
-See list of issues under the Milestones: https://github.com/vonderborch/Velentr.Input/milestones
+See list of issues under the Milestones: https://github.com/vonderborch/Velentr.Collections/milestones
