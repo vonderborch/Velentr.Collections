@@ -17,7 +17,7 @@ namespace Collections.Net.Collections.Concurrent
     /// <seealso cref="System.Collections.Generic.IEnumerable{T}" />
     /// <seealso cref="System.Collections.IEnumerable" />
     [DebuggerDisplay("Count = {Count}")]
-    public class ConcurrentLimitedPriorityQueue<T, C> : Collection, IEnumerable<T>, IEnumerable
+    public class ConcurrentLimitedPriorityQueue<T, C> : Collection, IEnumerable<T>, IEnumerable where C : PriorityConverter<C>
     {
 
         /// <summary>

@@ -14,27 +14,27 @@ namespace Collections.Net.Collections
     /// <typeparam name="V"></typeparam>
     /// <seealso cref="Collections.Net.Collections.Collection" />
     [DebuggerDisplay("Count = {Count}")]
-    public class Cache<TKey, TValue> : Collection
+    public class Cache<K, V> : Collection
     {
 
         /// <summary>
         /// The dictionary
         /// </summary>
-        private IImmutableDictionary<TKey, TValue> _dictionary;
+        private IImmutableDictionary<K, V> _dictionary;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Cache{K, V}"/> class.
         /// </summary>
         public Cache()
         {
-            _dictionary = ImmutableDictionary.Create<TKey, TValue>();
+            _dictionary = ImmutableDictionary.Create<K, V>();
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Cache{K, V}"/> class.
         /// </summary>
         /// <param name="dictionary">The dictionary.</param>
-        public Cache(Dictionary<TKey, TValue> dictionary)
+        public Cache(Dictionary<K, V> dictionary)
         {
             _dictionary = dictionary.ToImmutableDictionary();
             UpdateCount(dictionary.Count);
@@ -67,7 +67,7 @@ namespace Collections.Net.Collections
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
         /// <returns>Whether the operation was successful.</returns>
-        public bool Add(TKey key, TValue value)
+        public bool Add(K key, V value)
         {
             return GetOrAdd(key, value, out _);
         }
@@ -76,10 +76,10 @@ namespace Collections.Net.Collections
         /// Appends the specified new items to the Cache.
         /// </summary>
         /// <param name="newItems">The new items.</param>
-        public void Append(Dictionary<TKey, TValue> newItems)
+        public void Append(Dictionary<K, V> newItems)
         {
-            IImmutableDictionary<TKey, TValue> oldDictionary;
-            IImmutableDictionary<TKey, TValue> newDictionary;
+            IImmutableDictionary<K, V> oldDictionary;
+            IImmutableDictionary<K, V> newDictionary;
             do
             {
                 oldDictionary = _dictionary.ToImmutableDictionary();
@@ -94,10 +94,10 @@ namespace Collections.Net.Collections
         /// Appends the specified new items to the Cache.
         /// </summary>
         /// <param name="newItems">The new items.</param>
-        public void Append(List<KeyValuePair<TKey, TValue>> newItems)
+        public void Append(List<KeyValuePair<K, V>> newItems)
         {
-            IImmutableDictionary<TKey, TValue> oldDictionary;
-            IImmutableDictionary<TKey, TValue> newDictionary;
+            IImmutableDictionary<K, V> oldDictionary;
+            IImmutableDictionary<K, V> newDictionary;
             do
             {
                 oldDictionary = _dictionary.ToImmutableDictionary();
@@ -114,7 +114,7 @@ namespace Collections.Net.Collections
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
         /// <returns>The value.</returns>
-        public TValue GetOrAdd(TKey key, TValue value)
+        public V GetOrAdd(K key, V value)
         {
             GetOrAdd(key, value, out var output);
             return output;
@@ -127,15 +127,15 @@ namespace Collections.Net.Collections
         /// <param name="value">The value.</param>
         /// <param name="outValue">The out value.</param>
         /// <returns>Whether the operation was successful.</returns>
-        public bool GetOrAdd(TKey key, TValue value, out TValue outValue)
+        public bool GetOrAdd(K key, V value, out V outValue)
         {
             if (TryGetValue(key, out outValue))
             {
                 return true;
             }
 
-            IImmutableDictionary<TKey, TValue> oldDictionary;
-            IImmutableDictionary<TKey, TValue> newDictionary;
+            IImmutableDictionary<K, V> oldDictionary;
+            IImmutableDictionary<K, V> newDictionary;
             do
             {
                 oldDictionary = _dictionary.ToImmutableDictionary();
@@ -159,7 +159,7 @@ namespace Collections.Net.Collections
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
         /// <returns>The value.</returns>
-        public TValue GetOrAddOrUpdate(TKey key, TValue value)
+        public V GetOrAddOrUpdate(K key, V value)
         {
             GetOrAddOrUpdate(key, value, out var output);
             return output;
@@ -172,7 +172,7 @@ namespace Collections.Net.Collections
         /// <param name="value">The value.</param>
         /// <param name="outValue">The out value.</param>
         /// <returns>Whether the operation was successful.</returns>
-        public bool GetOrAddOrUpdate(TKey key, TValue value, out TValue outValue)
+        public bool GetOrAddOrUpdate(K key, V value, out V outValue)
         {
             if (TryGetValue(key, out outValue))
             {
@@ -180,8 +180,8 @@ namespace Collections.Net.Collections
             }
 
             bool setItem;
-            IImmutableDictionary<TKey, TValue> oldDictionary;
-            IImmutableDictionary<TKey, TValue> newDictionary;
+            IImmutableDictionary<K, V> oldDictionary;
+            IImmutableDictionary<K, V> newDictionary;
             do
             {
                 oldDictionary = _dictionary.ToImmutableDictionary();
@@ -222,7 +222,7 @@ namespace Collections.Net.Collections
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
         /// <returns>The value.</returns>
-        public TValue GetOrUpdate(TKey key, TValue value)
+        public V GetOrUpdate(K key, V value)
         {
             GetOrUpdate(key, value, out var output);
             return output;
@@ -235,7 +235,7 @@ namespace Collections.Net.Collections
         /// <param name="value">The value.</param>
         /// <param name="outValue">The out value.</param>
         /// <returns>Whether the operation was successful.</returns>
-        public bool GetOrUpdate(TKey key, TValue value, out TValue outValue)
+        public bool GetOrUpdate(K key, V value, out V outValue)
         {
             if (TryGetValue(key, out outValue))
             {
@@ -246,8 +246,8 @@ namespace Collections.Net.Collections
             {
                 if (!output.Equals(value))
                 {
-                    IImmutableDictionary<TKey, TValue> oldDictionary;
-                    IImmutableDictionary<TKey, TValue> newDictionary;
+                    IImmutableDictionary<K, V> oldDictionary;
+                    IImmutableDictionary<K, V> newDictionary;
                     do
                     {
                         oldDictionary = _dictionary.ToImmutableDictionary();
@@ -283,7 +283,7 @@ namespace Collections.Net.Collections
         /// </summary>
         /// <param name="searchKey">The search key.</param>
         /// <returns>The key.</returns>
-        public TKey TryGetKey(TKey searchKey)
+        public K TryGetKey(K searchKey)
         {
             TryGetKey(searchKey, out var value);
             return value;
@@ -295,7 +295,7 @@ namespace Collections.Net.Collections
         /// <param name="searchKey">The search key.</param>
         /// <param name="actualKey">The actual key.</param>
         /// <returns>Whether the operation was successful.</returns>
-        public bool TryGetKey(TKey searchKey, out TKey actualKey)
+        public bool TryGetKey(K searchKey, out K actualKey)
         {
             return _dictionary.TryGetKey(searchKey, out actualKey);
         }
@@ -305,7 +305,7 @@ namespace Collections.Net.Collections
         /// </summary>
         /// <param name="key">The key.</param>
         /// <returns>The value.</returns>
-        public TValue TryGetValue(TKey key)
+        public V TryGetValue(K key)
         {
             TryGetValue(key, out var value);
             return value;
@@ -317,7 +317,7 @@ namespace Collections.Net.Collections
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
         /// <returns>Whether the operation was successful.</returns>
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(K key, out V value)
         {
             return _dictionary.TryGetValue(key, out value);
         }
@@ -326,7 +326,7 @@ namespace Collections.Net.Collections
         /// Gets a snapshot of the Cache.
         /// </summary>
         /// <returns>A snapshot of the Cache as a dictionary.</returns>
-        public Dictionary<TKey, TValue> GetSnapshot()
+        public Dictionary<K, V> GetSnapshot()
         {
             return _dictionary.ToDictionary(p => p.Key, p => p.Value);
         }
@@ -338,7 +338,7 @@ namespace Collections.Net.Collections
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator Dictionary<TKey, TValue>(Cache<TKey, TValue> source)
+        public static implicit operator Dictionary<K, V>(Cache<K, V> source)
         {
             return source.GetSnapshot();
         }
@@ -350,19 +350,19 @@ namespace Collections.Net.Collections
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator Cache<TKey, TValue>(Dictionary<TKey, TValue> source)
+        public static implicit operator Cache<K, V>(Dictionary<K, V> source)
         {
-            return new Cache<TKey, TValue>(source);
+            return new Cache<K, V>(source);
         }
 
         /// <summary>
         /// Removes the specified key.
         /// </summary>
         /// <param name="key">The key.</param>
-        public void Remove(TKey key)
+        public void Remove(K key)
         {
-            IImmutableDictionary<TKey, TValue> oldDictionary;
-            IImmutableDictionary<TKey, TValue> newDictionary;
+            IImmutableDictionary<K, V> oldDictionary;
+            IImmutableDictionary<K, V> newDictionary;
             do
             {
                 oldDictionary = _dictionary.ToImmutableDictionary();
@@ -376,10 +376,10 @@ namespace Collections.Net.Collections
         /// Removes the range.
         /// </summary>
         /// <param name="keys">The keys.</param>
-        public void RemoveRange(List<TKey> keys)
+        public void RemoveRange(List<K> keys)
         {
-            IImmutableDictionary<TKey, TValue> oldDictionary;
-            IImmutableDictionary<TKey, TValue> newDictionary;
+            IImmutableDictionary<K, V> oldDictionary;
+            IImmutableDictionary<K, V> newDictionary;
             do
             {
                 oldDictionary = _dictionary.ToImmutableDictionary();

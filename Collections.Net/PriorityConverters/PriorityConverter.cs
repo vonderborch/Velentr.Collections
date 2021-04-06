@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Collections.Net.Collections.LockFree;
 using Collections.Net.Exceptions;
 
 namespace Collections.Net.PriorityConverters

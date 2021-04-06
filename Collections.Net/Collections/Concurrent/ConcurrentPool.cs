@@ -14,7 +14,7 @@ namespace Collections.Net.Collections.LockFree
     /// <typeparam name="T"></typeparam>
     /// <seealso cref="Collections.Net.Collections.Collection" />
     [DebuggerDisplay("Count = {Count}, MaxSize = {MaxSize}")]
-    public class ConcurrentFreePool<T> : Collection
+    public class ConcurrentPool<T> : Collection
     {
 
         /// <summary>
@@ -48,12 +48,12 @@ namespace Collections.Net.Collections.LockFree
         public CollectionEvent<PoolEventArgs<T>> ReusedEvent;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConcurrentFreePool{T}"/> class.
+        /// Initializes a new instance of the <see cref="ConcurrentPool{T}"/> class.
         /// </summary>
         /// <param name="constructorParameters">The constructor parameters.</param>
         /// <param name="actionWhenPoolFull">The action when pool full.</param>
         /// <param name="capacity">The initial capacity.</param>
-        public ConcurrentFreePool(object[] constructorParameters = null, PoolFullAction actionWhenPoolFull = PoolFullAction.IncreaseSize, int capacity = 0)
+        public ConcurrentPool(object[] constructorParameters = null, PoolFullAction actionWhenPoolFull = PoolFullAction.IncreaseSize, int capacity = 0)
         {
             _pool = new ConcurrentQueue<T>();
             ActionWhenPoolFull = actionWhenPoolFull;
