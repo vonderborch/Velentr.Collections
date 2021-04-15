@@ -194,7 +194,7 @@ namespace Velentr.Collections.Collections
         /// <returns>True if exists, false otherwise.</returns>
         public bool Exists(K key)
         {
-            return GetIndexForKey(key) == -1;
+            return GetIndexForKey(key) != -1;
         }
 
         /// <summary>
