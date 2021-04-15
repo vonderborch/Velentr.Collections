@@ -245,7 +245,7 @@ namespace Velentr.Collections.Collections
         /// <returns>The value associated with the key.</returns>
         public V GetItem(K key)
         {
-            if (!_values.TryGetValue(key, out var value))
+            if (_values.TryGetValue(key, out var value))
             {
                 return value;
             }
