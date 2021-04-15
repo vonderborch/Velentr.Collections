@@ -52,6 +52,20 @@ namespace Velentr.Collections.Collections
         }
 
         /// <summary>
+        ///     Gets or sets the <see cref="V" /> at the specified index.
+        /// </summary>
+        /// <value>
+        ///     The <see cref="V" />.
+        /// </value>
+        /// <param name="index">The index.</param>
+        /// <returns></returns>
+        public V this[K index]
+        {
+            get => _values[index];
+            set => UpdateItem(index, value);
+        }
+
+        /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>
@@ -159,6 +173,17 @@ namespace Velentr.Collections.Collections
             Validation.ValidateRange(index, nameof(index), 0, Count);
 
             _values[_order[index]] = value;
+            IncrementVersion();
+        }
+
+        /// <summary>
+        ///     Updates an item.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        public void UpdateItem(K key, V value)
+        {
+            _values[key] = value;
             IncrementVersion();
         }
 
