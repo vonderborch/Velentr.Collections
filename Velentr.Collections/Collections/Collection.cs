@@ -24,14 +24,6 @@ namespace Velentr.Collections.Collections
         public long Count => _count;
 
         /// <summary>
-        /// Gets a value indicating whether this collection is empty.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this collection is empty; otherwise, <c>false</c>.
-        /// </value>
-        public bool IsEmpty => _count == 0;
-
-        /// <summary>
         /// The disposed
         /// </summary>
         protected bool _disposed = false;
