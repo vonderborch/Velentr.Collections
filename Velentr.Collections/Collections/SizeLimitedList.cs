@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Velentr.Collections.CollectionActions;
 using Velentr.Collections.Exceptions;
 
@@ -192,6 +193,34 @@ namespace Velentr.Collections.Collections
         }
 
         /// <summary>
+        ///     Determine if 'item' exists.
+        /// </summary>
+        ///
+        /// <param name="item"> The item. </param>
+        ///
+        /// <returns>
+        ///     True if it succeeds, false if it fails.
+        /// </returns>
+        public bool Exists(T item)
+        {
+            return _list.FindIndex(x => x.Equals(item)) != -1;
+        }
+
+        /// <summary>
+        ///     Searches for the first index.
+        /// </summary>
+        ///
+        /// <param name="item"> The item. </param>
+        ///
+        /// <returns>
+        ///     The found index.
+        /// </returns>
+        public int FindIndex(T item)
+        {
+            return _list.FindIndex(x => x.Equals(item));
+        }
+
+        /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>
@@ -211,6 +240,25 @@ namespace Velentr.Collections.Collections
         IEnumerator IEnumerable.GetEnumerator()
         {
             return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        ///     Gets an item.
+        /// </summary>
+        ///
+        /// <param name="index"> Zero-based index of the. </param>
+        ///
+        /// <returns>
+        ///     The item.
+        /// </returns>
+        public T GetItem(int index)
+        {
+            if (index < 0 || index >= _list.Count)
+            {
+                return default(T);
+            }
+
+            return _list[index];
         }
 
         /// <summary>
