@@ -29,7 +29,7 @@ namespace Velentr.Collections.Collections
         ///
         /// <param name="maxSize">        (Optional) The maximum size of the. </param>
         /// <param name="actionWhenFull"> (Optional) The action when full. </param>
-        public SizeLimitedList(long maxSize = 32, SizeLimitedListFullAction actionWhenFull = SizeLimitedListFullAction.PopOldestItem)
+        public SizeLimitedList(long maxSize = 32, SizeLimitedFullAction actionWhenFull = SizeLimitedFullAction.PopOldestItem)
         {
             _list = new List<T>();
             ActionWhenFull = actionWhenFull;
@@ -43,7 +43,7 @@ namespace Velentr.Collections.Collections
         /// <param name="capacity">       The capacity. </param>
         /// <param name="maxSize">        (Optional) The maximum size of the. </param>
         /// <param name="actionWhenFull"> (Optional) The action when full. </param>
-        public SizeLimitedList(int capacity, long maxSize = 32, SizeLimitedListFullAction actionWhenFull = SizeLimitedListFullAction.PopOldestItem)
+        public SizeLimitedList(int capacity, long maxSize = 32, SizeLimitedFullAction actionWhenFull = SizeLimitedFullAction.PopOldestItem)
         {
             _list = new List<T>(capacity);
             ActionWhenFull = actionWhenFull;
@@ -57,7 +57,7 @@ namespace Velentr.Collections.Collections
         /// <param name="collection">     The collection. </param>
         /// <param name="maxSize">        (Optional) The maximum size of the. </param>
         /// <param name="actionWhenFull"> (Optional) The action when full. </param>
-        public SizeLimitedList(IEnumerable<T> collection, long maxSize = 32, SizeLimitedListFullAction actionWhenFull = SizeLimitedListFullAction.PopOldestItem)
+        public SizeLimitedList(IEnumerable<T> collection, long maxSize = 32, SizeLimitedFullAction actionWhenFull = SizeLimitedFullAction.PopOldestItem)
         {
             _list = new List<T>(collection);
             ActionWhenFull = actionWhenFull;
@@ -71,7 +71,7 @@ namespace Velentr.Collections.Collections
         /// <value>
         ///     The action when full.
         /// </value>
-        public SizeLimitedListFullAction ActionWhenFull { get; set; }
+        public SizeLimitedFullAction ActionWhenFull { get; set; }
 
         /// <summary>
         ///     Gets or sets the maximum size.
@@ -114,12 +114,12 @@ namespace Velentr.Collections.Collections
             {
                 switch (ActionWhenFull)
                 {
-                    case SizeLimitedListFullAction.PopOldestItem:
+                    case SizeLimitedFullAction.PopOldestItem:
                         var newItem = _list[0];
                         _list.RemoveAt(0);
                         return newItem;
 
-                    case SizeLimitedListFullAction.PopNewestItem:
+                    case SizeLimitedFullAction.PopNewestItem:
                         _list.RemoveAt(_list.Count - 1);
                         return item;
                 }
@@ -147,16 +147,16 @@ namespace Velentr.Collections.Collections
             }
 
             var removedItems = new List<T>();
-            while (_list.Count >= MaxSize && ActionWhenFull != SizeLimitedListFullAction.Ignore)
+            while (_list.Count >= MaxSize && ActionWhenFull != SizeLimitedFullAction.Ignore)
             {
                 switch (ActionWhenFull)
                 {
-                    case SizeLimitedListFullAction.PopOldestItem:
+                    case SizeLimitedFullAction.PopOldestItem:
                         removedItems.Add(_list[0]);
                         _list.RemoveAt(0);
                         break;
 
-                    case SizeLimitedListFullAction.PopNewestItem:
+                    case SizeLimitedFullAction.PopNewestItem:
                         removedItems.Add(_list[_list.Count - 1]);
                         _list.RemoveAt(_list.Count - 1);
                         break;

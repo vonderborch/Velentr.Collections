@@ -3,7 +3,7 @@
     /// <summary>
     ///     Values that represent size limited list full actions.
     /// </summary>
-    public enum SizeLimitedListFullAction
+    public enum SizeLimitedFullAction
     {
         /// <summary>
         ///     An enum constant representing the ignore option.

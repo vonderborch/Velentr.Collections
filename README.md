@@ -16,6 +16,7 @@ Collections.LockFree | LockFreePool | A pool of objects that can be used to hold
 Collections.LockFree | LockFreeQueue | A lock-free Queue implementation | 1.0.0 | `var c = new LockFreeQueue<string>();`
 Collections.LockFree | LockFreeStack | A lock-free Stack implementation | 1.0.0 | `var c = new LockFreeStack<string>();`
 Collections | OrderedDictionary | A Collection that combines functionality of a dictionary and a list. | 1.1.0 | `var c = new OrderedDictionary<string, List<string>>();`
+Collections | SizeLimitedOrderedDictionary | A Collection that combines functionality of a dictionary and a list and that is also limited in max capacity. | 1.1.3 | `var c = new OrderedDictionary<string, List<string>>();`
 Collections | DictionaryCache | A Thread-Safe and Lock-Free dictionary optimized for reads | 1.1.0 | `var c = new DictionaryCache<string, int>();`
 Collections | SizeLimitedList | A list that is limited in max capacity | 1.1.0 | `var c = new SizeLimitedList<string>();`
 
