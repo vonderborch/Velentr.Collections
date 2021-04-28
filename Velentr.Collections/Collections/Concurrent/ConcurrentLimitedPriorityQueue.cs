@@ -12,23 +12,22 @@ namespace Velentr.Collections.Collections.Concurrent
     /// Defines a Concurrent Priority Queue Collection (FIFO).
     /// </summary>
     /// <typeparam name="T">The type associated with the Priority Queue instance</typeparam>
-    /// <typeparam name="C">The type associated with the Priority Converter for the Priority Queue instance</typeparam>
+    /// <typeparam name="ConverterType">The type associated with the Priority Converter for the Priority Queue instance</typeparam>
     /// <seealso cref="Collections.Net.Collections.Collection" />
     /// <seealso cref="System.Collections.Generic.IEnumerable{T}" />
     /// <seealso cref="System.Collections.IEnumerable" />
     [DebuggerDisplay("Count = {Count}")]
-    public class ConcurrentLimitedPriorityQueue<T, C> : Collection, IEnumerable<T>, IEnumerable where C : PriorityConverter<C>
+    public class ConcurrentLimitedPriorityQueue<T, ConverterType> : Collection, IEnumerable<T>, IEnumerable
     {
-
         /// <summary>
         /// The converter
         /// </summary>
-        private PriorityConverter<C> _converter;
+        private PriorityConverter<ConverterType> _converter;
 
         /// <summary>
         /// The queues
         /// </summary>
-        private Dictionary<C, ConcurrentQueue<T>> _queues;
+        private Dictionary<ConverterType, ConcurrentQueue<T>> _queues;
 
         /// <summary>
         /// The valid integer values
@@ -39,17 +38,34 @@ namespace Velentr.Collections.Collections.Concurrent
         /// Initializes a new instance of the <see cref="LockFreePriorityQueue{T}"/> class.
         /// </summary>
         /// <param name="converter">The converter.</param>
-        public ConcurrentLimitedPriorityQueue(PriorityConverter<C> converter)
+        public ConcurrentLimitedPriorityQueue(PriorityConverter<ConverterType> converter)
         {
             _converter = converter;
-            
-            _queues = new Dictionary<C, ConcurrentQueue<T>>(_converter.OptionCount);
+
+            _queues = new Dictionary<ConverterType, ConcurrentQueue<T>>(_converter.OptionCount);
             _validIntegerValues = new List<int>(_converter.OptionCount);
             foreach (var option in _converter.Options)
             {
                 _queues.Add(option.Key, new ConcurrentQueue<T>());
                 _validIntegerValues.Add(option.Value);
             }
+        }
+
+        /// <summary>
+        /// Clears the collection.
+        /// </summary>
+        public override void Clear()
+        {
+            _version = 0;
+            long count = 0;
+            foreach (var queue in _queues)
+            {
+                count += queue.Value.Count;
+
+                while (queue.Value.TryDequeue(out var _)) ;
+            }
+
+            UpdateCount(-count);
         }
 
         /// <summary>
@@ -95,12 +111,21 @@ namespace Velentr.Collections.Collections.Concurrent
         }
 
         /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public override void Dispose()
+        {
+            _disposed = true;
+            Clear();
+        }
+
+        /// <summary>
         /// Enqueues the specified value.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="priority">The priority.</param>
         /// <exception cref="Collections.Net.Exceptions.CollectionDisposedException"></exception>
-        public void Enqueue(T value, C priority)
+        public void Enqueue(T value, ConverterType priority)
         {
             if (_disposed)
             {
@@ -129,52 +154,8 @@ namespace Velentr.Collections.Collections.Concurrent
             {
                 throw new InvalidPriorityException();
             }
-            
+
             Enqueue(value, _converter.ConvertFromInt(priority));
-        }
-
-        /// <summary>
-        /// Determines whether [is valid priority] [the specified priority].
-        /// </summary>
-        /// <param name="priority">The priority.</param>
-        /// <returns>
-        ///   <c>true</c> if [is valid priority] [the specified priority]; otherwise, <c>false</c>.
-        /// </returns>
-        /// <exception cref="Collections.Net.Exceptions.CollectionDisposedException"></exception>
-        public bool IsValidPriority(int priority)
-        {
-            if (_disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            return _validIntegerValues.Contains(priority);
-        }
-
-        /// <summary>
-        /// Clears the collection.
-        /// </summary>
-        public override void Clear()
-        {
-            _version = 0;
-            long count = 0;
-            foreach (var queue in _queues)
-            {
-                count += queue.Value.Count;
-
-                while (queue.Value.TryDequeue(out var _)) ;
-            }
-
-            UpdateCount(-count);
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public override void Dispose()
-        {
-            _disposed = true;
-            Clear();
         }
 
         /// <summary>
@@ -197,6 +178,24 @@ namespace Velentr.Collections.Collections.Concurrent
         IEnumerator IEnumerable.GetEnumerator()
         {
             return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        /// Determines whether [is valid priority] [the specified priority].
+        /// </summary>
+        /// <param name="priority">The priority.</param>
+        /// <returns>
+        ///   <c>true</c> if [is valid priority] [the specified priority]; otherwise, <c>false</c>.
+        /// </returns>
+        /// <exception cref="Collections.Net.Exceptions.CollectionDisposedException"></exception>
+        public bool IsValidPriority(int priority)
+        {
+            if (_disposed)
+            {
+                throw new CollectionDisposedException();
+            }
+
+            return _validIntegerValues.Contains(priority);
         }
 
         /// <summary>

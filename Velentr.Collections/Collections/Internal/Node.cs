@@ -9,12 +9,6 @@ namespace Velentr.Collections.Collections.Internal
     /// <typeparam name="T">The type of the value for the node</typeparam>
     internal class Node<T> : IDisposable
     {
-
-        /// <summary>
-        /// Whether the object has been disposed
-        /// </summary>
-        private bool _disposed;
-
         /// <summary>
         /// The next node
         /// </summary>
@@ -26,12 +20,9 @@ namespace Velentr.Collections.Collections.Internal
         public T Value;
 
         /// <summary>
-        /// Gets a value indicating whether this <see cref="Node{T}"/> is disposed.
+        /// Whether the object has been disposed
         /// </summary>
-        /// <value>
-        ///   <c>true</c> if disposed; otherwise, <c>false</c>.
-        /// </value>
-        public bool Disposed => _disposed;
+        private bool _disposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Node{T}"/> class.
@@ -49,13 +40,21 @@ namespace Velentr.Collections.Collections.Internal
         }
 
         /// <summary>
+        /// Gets a value indicating whether this <see cref="Node{T}"/> is disposed.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if disposed; otherwise, <c>false</c>.
+        /// </value>
+        public bool Disposed => _disposed;
+
+        /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
         {
             Dispose(true);
 
-            // Use SupressFinalize in case a subclass 
+            // Use SupressFinalize in case a subclass
             // of this type implements a finalizer.
             GC.SuppressFinalize(this);
         }
@@ -77,6 +76,5 @@ namespace Velentr.Collections.Collections.Internal
                 _disposed = true;
             }
         }
-
     }
 }

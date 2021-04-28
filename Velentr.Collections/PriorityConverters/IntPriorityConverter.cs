@@ -8,7 +8,6 @@ namespace Velentr.Collections.PriorityConverters
     /// <seealso cref="Collections.Net.PriorityConverters.PriorityConverter{System.Int32}" />
     public class IntPriorityConverter : PriorityConverter<int>
     {
-
         /// <summary>
         /// Generates the priority converter options.
         /// </summary>

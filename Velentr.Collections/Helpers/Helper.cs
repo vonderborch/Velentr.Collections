@@ -4,7 +4,6 @@ namespace Velentr.Collections.Helpers
 {
     public static class Helper
     {
-
         /// <summary>
         /// Disposes an object if possible
         /// </summary>

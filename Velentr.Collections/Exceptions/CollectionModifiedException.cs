@@ -8,7 +8,6 @@ namespace Velentr.Collections.Exceptions
     /// <seealso cref="System.Exception" />
     public class CollectionModifiedException : Exception
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="CollectionModifiedException"/> class.
         /// </summary>

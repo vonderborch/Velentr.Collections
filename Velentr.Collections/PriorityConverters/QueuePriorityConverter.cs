@@ -9,7 +9,6 @@ namespace Velentr.Collections.PriorityConverters
     /// <seealso cref="QueuePriority" />
     public class QueuePriorityConverter : PriorityConverter<QueuePriority>
     {
-
         /// <summary>
         /// Generates the priority converter options.
         /// </summary>
