@@ -17,7 +17,6 @@ namespace Velentr.Collections.Collections.LockFree
     [DebuggerDisplay("Count = {Count}")]
     public class LockFreeStack<T> : Collection, IEnumerable<T>, IEnumerable
     {
-
         /// <summary>
         /// The head
         /// </summary>
@@ -41,28 +40,6 @@ namespace Velentr.Collections.Collections.LockFree
             _count = 0;
             _head = new Node<T>();
             Push(value);
-        }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        /// An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        /// An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return InternalGetEnumerator();
         }
 
         /// <summary>
@@ -95,6 +72,42 @@ namespace Velentr.Collections.Collections.LockFree
             _disposed = true;
             Clear();
             _head.Dispose();
+        }
+
+        /// <summary>
+        /// Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>
+        /// An enumerator that can be used to iterate through the collection.
+        /// </returns>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        /// Returns an enumerator that iterates through a collection.
+        /// </summary>
+        /// <returns>
+        /// An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
+        /// </returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        /// Peeks at the value at the top of the Stack.
+        /// </summary>
+        /// <returns>The next value.</returns>
+        public T Peek()
+        {
+            if (_disposed)
+            {
+                throw new CollectionDisposedException();
+            }
+
+            return _head.Next.Value;
         }
 
         /// <summary>
@@ -163,20 +176,6 @@ namespace Velentr.Collections.Collections.LockFree
         }
 
         /// <summary>
-        /// Peeks at the value at the top of the Stack.
-        /// </summary>
-        /// <returns>The next value.</returns>
-        public T Peek()
-        {
-            if (_disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            return _head.Next.Value;
-        }
-
-        /// <summary>
         /// Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>
@@ -214,7 +213,5 @@ namespace Velentr.Collections.Collections.LockFree
                 head = head.Next;
             } while (head != null);
         }
-
     }
-
 }

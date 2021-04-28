@@ -9,7 +9,6 @@ namespace Velentr.Collections.PriorityConverters
     /// <typeparam name="T"></typeparam>
     public abstract class PriorityConverter<T>
     {
-
         /// <summary>
         /// The options
         /// </summary>

@@ -17,7 +17,6 @@ namespace Velentr.Collections.Collections.LockFree
     [DebuggerDisplay("Count = {Count}")]
     public class LockFreeQueue<T> : Collection, IEnumerable<T>, IEnumerable
     {
-
         /// <summary>
         /// The head
         /// </summary>
@@ -69,17 +68,6 @@ namespace Velentr.Collections.Collections.LockFree
                 oldHead = nextHead;
             }
             UpdateCount(-nodes);
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public override void Dispose()
-        {
-            _disposed = true;
-            Clear();
-            _head.Dispose();
-            _tail.Dispose();
         }
 
         /// <summary>
@@ -145,6 +133,17 @@ namespace Velentr.Collections.Collections.LockFree
         }
 
         /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public override void Dispose()
+        {
+            _disposed = true;
+            Clear();
+            _head.Dispose();
+            _tail.Dispose();
+        }
+
+        /// <summary>
         /// Enqueues the specified value onto the Queue.
         /// </summary>
         /// <param name="value">The value.</param>
@@ -184,20 +183,6 @@ namespace Velentr.Collections.Collections.LockFree
         }
 
         /// <summary>
-        /// Peeks at the value at the top of the Queue.
-        /// </summary>
-        /// <returns>The next value.</returns>
-        public T Peek()
-        {
-            if (_disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            return _head.Next.Value;
-        }
-
-        /// <summary>
         /// Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>
@@ -217,6 +202,20 @@ namespace Velentr.Collections.Collections.LockFree
         IEnumerator IEnumerable.GetEnumerator()
         {
             return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        /// Peeks at the value at the top of the Queue.
+        /// </summary>
+        /// <returns>The next value.</returns>
+        public T Peek()
+        {
+            if (_disposed)
+            {
+                throw new CollectionDisposedException();
+            }
+
+            return _head.Next.Value;
         }
 
         /// <summary>

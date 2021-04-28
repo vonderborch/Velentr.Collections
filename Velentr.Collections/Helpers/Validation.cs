@@ -5,6 +5,34 @@ namespace Velentr.Collections.Helpers
     public static class Validation
     {
         /// <summary>
+        /// Nots the null or empty check.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void NotNullOrEmptyCheck(string value, string parameterName)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException($"{parameterName} can not be null or empty.");
+            }
+        }
+
+        /// <summary>
+        /// Nots the null or white space check.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void NotNullOrWhiteSpaceCheck(string value, string parameterName)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException($"{parameterName} can not be null, empty, or contain only white space.");
+            }
+        }
+
+        /// <summary>
         /// Validates the range.
         /// </summary>
         /// <param name="value">The value.</param>
@@ -33,34 +61,6 @@ namespace Velentr.Collections.Helpers
             if (minValue > value || value > maxValue)
             {
                 throw new ArgumentOutOfRangeException(parameterName, $"The parameter [{parameterName}] is out of the range (min: {minValue}, max:{maxValue})!");
-            }
-        }
-
-        /// <summary>
-        /// Nots the null or white space check.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="parameterName">Name of the parameter.</param>
-        /// <exception cref="ArgumentException"></exception>
-        public static void NotNullOrWhiteSpaceCheck(string value, string parameterName)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                throw new ArgumentException($"{parameterName} can not be null, empty, or contain only white space.");
-            }
-        }
-
-        /// <summary>
-        /// Nots the null or empty check.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="parameterName">Name of the parameter.</param>
-        /// <exception cref="ArgumentException"></exception>
-        public static void NotNullOrEmptyCheck(string value, string parameterName)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                throw new ArgumentException($"{parameterName} can not be null or empty.");
             }
         }
     }

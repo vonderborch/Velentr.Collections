@@ -3,23 +3,16 @@ using System.Collections.Generic;
 
 namespace Velentr.Collections.Events
 {
-
     /// <summary>
     /// An event that fires as part of a Collection
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class CollectionEvent<T> where T : EventArgs
     {
-
         /// <summary>
         /// The delegates
         /// </summary>
         internal List<EventHandler<T>> Delegates = new List<EventHandler<T>>();
-
-        /// <summary>
-        /// Occurs when [internal event].
-        /// </summary>
-        internal event EventHandler<T> InternalEvent;
 
         /// <summary>
         /// Occurs when [event].
@@ -37,6 +30,43 @@ namespace Velentr.Collections.Events
                 InternalEvent -= value;
                 Delegates.Remove(value);
             }
+        }
+
+        /// <summary>
+        /// Occurs when [internal event].
+        /// </summary>
+        internal event EventHandler<T> InternalEvent;
+
+        /// <summary>
+        /// Implements the operator -.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static CollectionEvent<T> operator -(CollectionEvent<T> left, EventHandler<T> right)
+        {
+            left.InternalEvent -= right;
+            left.Delegates.Remove(right);
+
+            return left;
+        }
+
+        /// <summary>
+        /// Implements the operator +.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static CollectionEvent<T> operator +(CollectionEvent<T> left, EventHandler<T> right)
+        {
+            left.InternalEvent += right;
+            left.Delegates.Add(right);
+
+            return left;
         }
 
         /// <summary>
@@ -62,39 +92,5 @@ namespace Velentr.Collections.Events
         {
             InternalEvent?.Invoke(sender, e);
         }
-
-        /// <summary>
-        /// Implements the operator +.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static CollectionEvent<T> operator +(CollectionEvent<T> left, EventHandler<T> right)
-        {
-            left.InternalEvent += right;
-            left.Delegates.Add(right);
-
-            return left;
-        }
-
-        /// <summary>
-        /// Implements the operator -.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static CollectionEvent<T> operator -(CollectionEvent<T> left, EventHandler<T> right)
-        {
-            left.InternalEvent -= right;
-            left.Delegates.Remove(right);
-
-            return left;
-        }
-
     }
-
 }

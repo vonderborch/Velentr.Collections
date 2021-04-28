@@ -3,7 +3,7 @@
 namespace Velentr.Collections.Helpers
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public class Guard
     {

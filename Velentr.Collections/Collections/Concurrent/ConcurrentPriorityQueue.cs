@@ -19,7 +19,6 @@ namespace Velentr.Collections.Collections.Concurrent
     [DebuggerDisplay("Count = {Count}")]
     public class ConcurrentPriorityQueue<T> : Collection, IEnumerable<T>, IEnumerable
     {
-
         /// <summary>
         /// The queues
         /// </summary>
@@ -43,6 +42,22 @@ namespace Velentr.Collections.Collections.Concurrent
                 _queues.Add((QueuePriority)values.GetValue(i), new ConcurrentQueue<T>());
                 _validIntegerValues.Add((int)values.GetValue(i));
             }
+        }
+
+        /// <summary>
+        /// Clears the collection.
+        /// </summary>
+        public override void Clear()
+        {
+            _version = 0;
+            long count = 0;
+            foreach (var queue in _queues)
+            {
+                count += queue.Value.Count;
+                while (queue.Value.TryDequeue(out var _)) ;
+            }
+
+            UpdateCount(-count);
         }
 
         /// <summary>
@@ -88,6 +103,15 @@ namespace Velentr.Collections.Collections.Concurrent
         }
 
         /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public override void Dispose()
+        {
+            _disposed = true;
+            Clear();
+        }
+
+        /// <summary>
         /// Enqueues the specified value.
         /// </summary>
         /// <param name="value">The value.</param>
@@ -127,49 +151,6 @@ namespace Velentr.Collections.Collections.Concurrent
         }
 
         /// <summary>
-        /// Determines whether [is valid priority] [the specified priority].
-        /// </summary>
-        /// <param name="priority">The priority.</param>
-        /// <returns>
-        ///   <c>true</c> if [is valid priority] [the specified priority]; otherwise, <c>false</c>.
-        /// </returns>
-        /// <exception cref="CollectionDisposedException"></exception>
-        public bool IsValidPriority(int priority)
-        {
-            if (_disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            return _validIntegerValues.Contains(priority);
-        }
-
-        /// <summary>
-        /// Clears the collection.
-        /// </summary>
-        public override void Clear()
-        {
-            _version = 0;
-            long count = 0;
-            foreach (var queue in _queues)
-            {
-                count += queue.Value.Count;
-                while (queue.Value.TryDequeue(out var _)) ;
-            }
-
-            UpdateCount(-count);
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public override void Dispose()
-        {
-            _disposed = true;
-            Clear();
-        }
-
-        /// <summary>
         /// Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>
@@ -189,6 +170,24 @@ namespace Velentr.Collections.Collections.Concurrent
         IEnumerator IEnumerable.GetEnumerator()
         {
             return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        /// Determines whether [is valid priority] [the specified priority].
+        /// </summary>
+        /// <param name="priority">The priority.</param>
+        /// <returns>
+        ///   <c>true</c> if [is valid priority] [the specified priority]; otherwise, <c>false</c>.
+        /// </returns>
+        /// <exception cref="CollectionDisposedException"></exception>
+        public bool IsValidPriority(int priority)
+        {
+            if (_disposed)
+            {
+                throw new CollectionDisposedException();
+            }
+
+            return _validIntegerValues.Contains(priority);
         }
 
         /// <summary>
