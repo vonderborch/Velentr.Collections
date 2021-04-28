@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using Velentr.Collections.CollectionActions;
 using Velentr.Collections.Exceptions;
 
@@ -15,6 +15,7 @@ namespace Velentr.Collections.Collections
     /// <seealso cref="Collection"/>
     /// <seealso cref="IEnumerable{T}"/>
     /// <seealso cref="IEnumerable"/>
+    [DebuggerDisplay("Count = {Count}, MaxSize = {MaxSize}")]
     public class SizeLimitedList<T> : Collection, IEnumerable<T>, IEnumerable
     {
         /// <summary>
