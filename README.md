@@ -19,6 +19,8 @@ Collections | OrderedDictionary | A Collection that combines functionality of a 
 Collections | SizeLimitedOrderedDictionary | A Collection that combines functionality of a dictionary and a list and that is also limited in max capacity. | 1.1.3 | `var c = new OrderedDictionary<string, List<string>>();`
 Collections | DictionaryCache | A Thread-Safe and Lock-Free dictionary optimized for reads | 1.1.0 | `var c = new DictionaryCache<string, int>();`
 Collections | SizeLimitedList | A list that is limited in max capacity | 1.1.0 | `var c = new SizeLimitedList<string>();`
+Collections | HistoryCollection | A collection implementing undo and redo functionality | 1.2.0 | `var c = new HistoryCollection<string>();`
+Collections | BiDirectionalDictionary | A bi-directional dictionary, where you can access the value for a key/value pair using the key or vice-versa | 1.2.0 | `var c = new HistoryCollection<string>();`
 
 **_NOTES:_**
 - **Collections.Concurrent collections**: _Collections under this namespace utilize .NET Concurrent collections internally_

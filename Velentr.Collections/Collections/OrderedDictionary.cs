@@ -44,7 +44,7 @@ namespace Velentr.Collections.Collections
         ///     The <see cref="TValue" />.
         /// </value>
         /// <param name="index">The index.</param>
-        /// <returns></returns>
+        /// <returns>The value.</returns>
         public TValue this[int index]
         {
             get => _values[_order[index]];

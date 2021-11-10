@@ -94,6 +94,7 @@ namespace Velentr.Collections.Collections
         /// <param name="value">The value.</param>
         protected void UpdateCount(long value)
         {
+            IncrementVersion();
             long newCount;
 
             do
