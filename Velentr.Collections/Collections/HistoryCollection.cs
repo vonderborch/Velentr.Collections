@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Velentr.Collections.CollectionActions;
+using Velentr.Collections.Exceptions;
 
 namespace Velentr.Collections.Collections
 {
@@ -12,7 +14,7 @@ namespace Velentr.Collections.Collections
     ///
     /// <seealso cref="Collection"/>
     [DebuggerDisplay("Count = {Count}, Current Position = {CurrentPosition}, Can Undo = {CanUndo}, Can Redo = {CanRedo}")]
-    public class HistoryCollection<T> : Collection
+    public class HistoryCollection<T> : Collection, IEnumerable<T>, IEnumerable
     {
         /// <summary>
         ///     The current position.
@@ -86,6 +88,21 @@ namespace Velentr.Collections.Collections
         public T OldestItem => _list[0];
 
         /// <summary>
+        ///     Indexer to get or set items within this collection using array index syntax.
+        /// </summary>
+        ///
+        /// <param name="index"> Zero-based index of the entry to access. </param>
+        ///
+        /// <returns>
+        ///     The indexed item.
+        /// </returns>
+        public T this[int index]
+        {
+            get => _list[index];
+            set => _list[index] = value;
+        }
+
+        /// <summary>
         ///     Undoes a number of items back.
         /// </summary>
         /// <param name="numberItems">The number of items to undo.</param>
@@ -144,7 +161,7 @@ namespace Velentr.Collections.Collections
             _list.AddItem(item);
             
             // if we're not at the latest item, get rid of everything after our current position...
-            if (_currentPosition != MaxHistoryIndex)
+            if (_currentPosition < MaxHistoryIndex - 1)
             {
                 var indexToDelete = (int)_currentPosition + 1;
                 do
@@ -154,6 +171,28 @@ namespace Velentr.Collections.Collections
             }
             _currentPosition = MaxHistoryIndex;
             UpdateCount(_list.Count);
+        }
+
+        /// <summary>
+        ///     Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>
+        ///     An enumerator that can be used to iterate through the collection.
+        /// </returns>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        ///     Returns an enumerator that iterates through a collection.
+        /// </summary>
+        /// <returns>
+        ///     An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
+        /// </returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return InternalGetEnumerator();
         }
 
         /// <summary>
@@ -186,6 +225,36 @@ namespace Velentr.Collections.Collections
         {
             UpdateCount(0);
             _list.Dispose();
+        }
+
+        /// <summary>
+        ///     Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>
+        ///     An enumerator that can be used to iterate through the collection.
+        /// </returns>
+        private IEnumerator<T> GetEnumerator()
+        {
+            return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        ///     Internals the get enumerator.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="CollectionModifiedException"></exception>
+        private IEnumerator<T> InternalGetEnumerator()
+        {
+            var enumeratorVersion = _version;
+            for (var i = 0; i < Count; i++)
+            {
+                if (enumeratorVersion != _version)
+                {
+                    throw new CollectionModifiedException();
+                }
+
+                yield return _list[i];
+            }
         }
     }
 }

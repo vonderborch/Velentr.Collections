@@ -10,9 +10,9 @@
     <Description>A variety of helpful collections.</Description>
     <PackageProjectUrl>https://github.com/vonderborch/Velentr.Collections</PackageProjectUrl>
     <PackageTags>Collections, Lock-Free, Concurrent</PackageTags>
-    <Version>1.2.1</Version>
-    <FileVersion>1.2.1</FileVersion>
-    <AssemblyVersion>1.2.1</AssemblyVersion>
+    <Version>1.2.2</Version>
+    <FileVersion>1.2.2</FileVersion>
+    <AssemblyVersion>1.2.2</AssemblyVersion>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
