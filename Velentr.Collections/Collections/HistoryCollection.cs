@@ -54,9 +54,36 @@ namespace Velentr.Collections.Collections
         public bool CanRedo => _currentPosition != MaxHistoryIndex;
 
         /// <summary>
+        /// Gets the current item.
+        /// </summary>
+        ///
+        /// <value>
+        /// The current item.
+        /// </value>
+        public T CurrentItem => _list[_currentPosition];
+
+        /// <summary>
         ///     Gets all items in the list.
         /// </summary>
         public List<T> GetAllItems => new List<T>(_list);
+
+        /// <summary>
+        /// Gets the newest item.
+        /// </summary>
+        ///
+        /// <value>
+        /// The newest item.
+        /// </value>
+        public T NewestItem => _list[MaxHistoryIndex];
+
+        /// <summary>
+        /// Gets the oldest item.
+        /// </summary>
+        ///
+        /// <value>
+        /// The oldest item.
+        /// </value>
+        public T OldestItem => _list[0];
 
         /// <summary>
         ///     Undoes a number of items back.
@@ -115,7 +142,7 @@ namespace Velentr.Collections.Collections
         public void AddItem(T item)
         {
             _list.AddItem(item);
-
+            
             // if we're not at the latest item, get rid of everything after our current position...
             if (_currentPosition != MaxHistoryIndex)
             {
