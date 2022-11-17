@@ -2,14 +2,15 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
+
 using Velentr.Collections.CollectionActions;
 using Velentr.Collections.Events;
 using Velentr.Core.Helpers.General;
 
-namespace Velentr.Collections.Collections.Concurrent
+namespace Velentr.Collections.Concurrent
 {
     /// <summary>
-    /// A Pool of objects.
+    ///     A Pool of objects.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <seealso cref="Collections.Net.Collections.Collection" />
@@ -17,39 +18,38 @@ namespace Velentr.Collections.Collections.Concurrent
     public class ConcurrentPool<T> : Collection
     {
         /// <summary>
-        /// The created event
-        /// </summary>
-        public CollectionEvent<PoolEventArgs<T>> CreatedEvent;
-
-        /// <summary>
-        /// The returned event
-        /// </summary>
-        public CollectionEvent<PoolEventArgs<T>> ReturnedEvent;
-
-        /// <summary>
-        /// The reused event
-        /// </summary>
-        public CollectionEvent<PoolEventArgs<T>> ReusedEvent;
-
-        /// <summary>
-        /// The constructor parameters
+        ///     The constructor parameters
         /// </summary>
         private readonly object[] _constructorParameters;
 
         /// <summary>
-        /// The pool
+        ///     The pool
         /// </summary>
         private readonly ConcurrentQueue<T> _pool;
 
         /// <summary>
-        /// The maximum size
+        ///     The maximum size
         /// </summary>
         private long _maxSize;
 
         /// <summary>
+        ///     The created event
+        /// </summary>
+        public CollectionEvent<PoolEventArgs<T>> CreatedEvent;
+
+        /// <summary>
+        ///     The returned event
+        /// </summary>
+        public CollectionEvent<PoolEventArgs<T>> ReturnedEvent;
+
+        /// <summary>
+        ///     The reused event
+        /// </summary>
+        public CollectionEvent<PoolEventArgs<T>> ReusedEvent;
+
+        /// <summary>
         ///     Constructor.
         /// </summary>
-        ///
         /// <param name="constructorParameters">
         ///     (Optional)
         ///     The constructor parameters.
@@ -66,95 +66,103 @@ namespace Velentr.Collections.Collections.Concurrent
         /// <param name="pruningAction">         (Optional) The pruning action. </param>
         public ConcurrentPool(object[] constructorParameters = null, PoolFullAction actionWhenPoolFull = PoolFullAction.IncreaseSize, int capacity = 0, long maxCapacity = 32, PoolPruningAction pruningAction = PoolPruningAction.Ignore)
         {
-            _pool = new ConcurrentQueue<T>();
-            ActionWhenPoolFull = actionWhenPoolFull;
-            _constructorParameters = constructorParameters ?? new object[] { };
+            this._pool = new ConcurrentQueue<T>();
+            this.ActionWhenPoolFull = actionWhenPoolFull;
+            this._constructorParameters = constructorParameters ?? new object[] { };
 
             if (capacity > 0)
             {
                 for (var i = 0; i < capacity; i++)
                 {
-                    _pool.Enqueue((T)Activator.CreateInstance(typeof(T), _constructorParameters));
+                    this._pool.Enqueue((T) Activator.CreateInstance(typeof(T), this._constructorParameters));
                 }
             }
 
-            _maxSize = maxCapacity;
-            ActionWhenPruningPool = pruningAction;
+            this._maxSize = maxCapacity;
+            this.ActionWhenPruningPool = pruningAction;
         }
 
         /// <summary>
-        /// Gets or sets the action when pool full.
+        ///     Gets or sets the action when pool full.
         /// </summary>
         /// <value>
-        /// The action when pool full.
+        ///     The action when pool full.
         /// </value>
         public PoolFullAction ActionWhenPoolFull { get; set; }
 
         /// <summary>
         ///     Gets or sets the action when pruning pool.
         /// </summary>
-        ///
         /// <value>
         ///     The action when pruning pool.
         /// </value>
         public PoolPruningAction ActionWhenPruningPool { get; set; }
 
         /// <summary>
-        /// Gets the free capacity.
+        ///     Gets the free capacity.
         /// </summary>
         /// <value>
-        /// The free capacity.
+        ///     The free capacity.
         /// </value>
-        public long FreeCapacity => Count;
+        public long FreeCapacity => this.Count;
 
         /// <summary>
-        /// Gets the maximum capacity.
+        ///     Gets the maximum capacity.
         /// </summary>
         /// <value>
-        /// The maximum capacity.
+        ///     The maximum capacity.
         /// </value>
-        public long MaxCapacity => _maxSize;
+        public long MaxCapacity => this._maxSize;
 
         /// <summary>
-        /// Clears the collection.
+        ///     Clears the collection.
         /// </summary>
         public override void Clear()
         {
-            var oldCount = Count;
-            _version = 0;
-            while (_pool.TryDequeue(out var _)) ;
-            _maxSize = 0;
+            var oldCount = this.Count;
+            this._version = 0;
+            while (this._pool.TryDequeue(out var _))
+            {
+                ;
+            }
+
+            this._maxSize = 0;
             UpdateCount(-oldCount);
         }
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public override void Dispose()
         {
-            _disposed = true;
-            while (_pool.TryDequeue(out var _)) ;
-            CreatedEvent?.Clear();
-            ReusedEvent?.Clear();
-            ReturnedEvent?.Clear();
+            this._disposed = true;
+            while (this._pool.TryDequeue(out var _))
+            {
+                ;
+            }
+
+            this.CreatedEvent?.Clear();
+            this.ReusedEvent?.Clear();
+            this.ReturnedEvent?.Clear();
         }
 
         /// <summary>
-        /// Gets an instance from the pool.
+        ///     Gets an instance from the pool.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception">The pool is full!</exception>
         public T Get()
         {
-            if (!_pool.TryDequeue(out var result))
+            if (!this._pool.TryDequeue(out var result))
             {
-                switch (ActionWhenPoolFull)
+                switch (this.ActionWhenPoolFull)
                 {
                     case PoolFullAction.IncreaseSize:
-                        result = (T)Activator.CreateInstance(typeof(T), _constructorParameters);
-                        CreatedEvent?.TriggerEvent(this, new PoolEventArgs<T>(result));
+                        result = (T) Activator.CreateInstance(typeof(T), this._constructorParameters);
+                        this.CreatedEvent?.TriggerEvent(this, new PoolEventArgs<T>(result));
                         IncrementVersion();
                         IncrementMaxCapacity();
+
                         break;
 
                     case PoolFullAction.ReturnNull:
@@ -166,7 +174,7 @@ namespace Velentr.Collections.Collections.Concurrent
             }
             else
             {
-                ReusedEvent?.TriggerEvent(this, new PoolEventArgs<T>(result));
+                this.ReusedEvent?.TriggerEvent(this, new PoolEventArgs<T>(result));
                 IncrementVersion();
             }
 
@@ -174,21 +182,22 @@ namespace Velentr.Collections.Collections.Concurrent
         }
 
         /// <summary>
-        /// Returns the item to the pool.
+        ///     Returns the item to the pool.
         /// </summary>
         /// <param name="item">The item.</param>
         public void Return(T item)
         {
             // if we've reached our max capacity and an object is returned, we should dispose of it
-            if (FreeCapacity >= MaxCapacity && ActionWhenPruningPool == PoolPruningAction.PruneToMaxCapacity)
+            if (this.FreeCapacity >= this.MaxCapacity && this.ActionWhenPruningPool == PoolPruningAction.PruneToMaxCapacity)
             {
-                DisposingHelpers.DisposeIfPossible<T>(item);
+                DisposingHelpers.DisposeIfPossible(item);
             }
+
             // otherwise, return it to the pool
             else
             {
-                _pool.Enqueue(item);
-                ReturnedEvent?.TriggerEvent(this, new PoolEventArgs<T>(item));
+                this._pool.Enqueue(item);
+                this.ReturnedEvent?.TriggerEvent(this, new PoolEventArgs<T>(item));
                 IncrementCount();
             }
         }
@@ -198,7 +207,7 @@ namespace Velentr.Collections.Collections.Concurrent
         /// </summary>
         private void IncrementMaxCapacity()
         {
-            Interlocked.Increment(ref _maxSize);
+            Interlocked.Increment(ref this._maxSize);
         }
     }
 }

@@ -1,10 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+
 using Velentr.Collections.Exceptions;
 using Velentr.Core.Helpers.Validation;
 
-namespace Velentr.Collections.Collections
+namespace Velentr.Collections
 {
     /// <summary>
     ///     A Collection that combines functionality of a dictionary and a list.
@@ -13,7 +14,7 @@ namespace Velentr.Collections.Collections
     /// <typeparam name="TValue">The type of the values.</typeparam>
     /// <seealso cref="Collections.Net.Collections.Collection" />
     /// <seealso cref="KeyValuePair{TKey,TValue}" />
-    /// <seealso cref="System.Collections.IEnumerable" />
+    /// <seealso cref="IEnumerable" />
     [DebuggerDisplay("Count = {Count}")]
     public class OrderedDictionary<TKey, TValue> : Collection, IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable
     {
@@ -33,8 +34,8 @@ namespace Velentr.Collections.Collections
         /// <param name="capacity">The capacity.</param>
         public OrderedDictionary(int capacity = 16)
         {
-            _order = new List<TKey>(capacity);
-            _values = new Dictionary<TKey, TValue>(capacity);
+            this._order = new List<TKey>(capacity);
+            this._values = new Dictionary<TKey, TValue>(capacity);
         }
 
         /// <summary>
@@ -47,7 +48,8 @@ namespace Velentr.Collections.Collections
         /// <returns>The value.</returns>
         public TValue this[int index]
         {
-            get => _values[_order[index]];
+            get => this._values[this._order[index]];
+
             set => UpdateItem(index, value);
         }
 
@@ -61,104 +63,9 @@ namespace Velentr.Collections.Collections
         /// <returns></returns>
         public TValue this[TKey index]
         {
-            get => _values[index];
+            get => this._values[index];
+
             set => UpdateItem(index, value);
-        }
-
-        /// <summary>
-        ///     Adds the item.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="forceAdd">if set to <c>true</c> [force add].</param>
-        /// <returns>Whether we were able to add the item or not.</returns>
-        public bool AddItem(TKey key, TValue value, int index = int.MaxValue, bool forceAdd = false)
-        {
-            return AddItemAndGetMetadata(key, value, index, forceAdd).Item1;
-        }
-
-        /// <summary>
-        ///     Adds the item and gets metadata.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="forceAdd">if set to <c>true</c> [force add].</param>
-        /// <returns>The metadata for the added item.</returns>
-        public (bool, int, TKey) AddItemAndGetMetadata(TKey key, TValue value, int index = int.MaxValue, bool forceAdd = false)
-        {
-            if (_values.ContainsKey(key))
-            {
-                if (!forceAdd)
-                {
-                    return (false, -1, key);
-                }
-
-                _values[key] = value;
-                IncrementVersion();
-
-                index = GetIndexForKey(key);
-                return (index == -1, index, key);
-            }
-
-            Validations.ValidateRange(index, nameof(index), 0);
-
-            if (index >= Count)
-            {
-                _order.Add(key);
-                _values.Add(key, value);
-                IncrementCount();
-
-                return (true, _order.Count - 1, key);
-            }
-
-            _order.Insert(index, key);
-            _values.Add(key, value);
-            IncrementCount();
-            return (true, index, key);
-        }
-
-        /// <summary>
-        ///     Clears the collection.
-        /// </summary>
-        public override void Clear()
-        {
-            _version = 0;
-            var oldCount = Count;
-            _order.Clear();
-            _values.Clear();
-            UpdateCount(-oldCount);
-        }
-
-        /// <summary>
-        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public override void Dispose()
-        {
-            _disposed = true;
-            _order.Clear();
-            _values.Clear();
-        }
-
-        /// <summary>
-        /// Whether an item with the specified key exists.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <returns>True if exists, false otherwise.</returns>
-        public bool Exists(TKey key)
-        {
-            return GetIndexForKey(key) != -1;
-        }
-
-        /// <summary>
-        /// Whether an item with the specified index exists.
-        /// </summary>
-        /// <param name="index">The index.</param>
-        /// <returns>True if exists, false otherwise.</returns>
-        public bool Exists(int index)
-        {
-            return index >= 0 && index < Count;
         }
 
         /// <summary>
@@ -184,13 +91,111 @@ namespace Velentr.Collections.Collections
         }
 
         /// <summary>
+        ///     Adds the item.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="forceAdd">if set to <c>true</c> [force add].</param>
+        /// <returns>Whether we were able to add the item or not.</returns>
+        public bool AddItem(TKey key, TValue value, int index = int.MaxValue, bool forceAdd = false)
+        {
+            return AddItemAndGetMetadata(key, value, index, forceAdd).Item1;
+        }
+
+        /// <summary>
+        ///     Adds the item and gets metadata.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="forceAdd">if set to <c>true</c> [force add].</param>
+        /// <returns>The metadata for the added item.</returns>
+        public (bool, int, TKey) AddItemAndGetMetadata(TKey key, TValue value, int index = int.MaxValue, bool forceAdd = false)
+        {
+            if (this._values.ContainsKey(key))
+            {
+                if (!forceAdd)
+                {
+                    return (false, -1, key);
+                }
+
+                this._values[key] = value;
+                IncrementVersion();
+
+                index = GetIndexForKey(key);
+
+                return (index == -1, index, key);
+            }
+
+            Validations.ValidateRange(index, nameof(index), 0);
+
+            if (index >= this.Count)
+            {
+                this._order.Add(key);
+                this._values.Add(key, value);
+                IncrementCount();
+
+                return (true, this._order.Count - 1, key);
+            }
+
+            this._order.Insert(index, key);
+            this._values.Add(key, value);
+            IncrementCount();
+
+            return (true, index, key);
+        }
+
+        /// <summary>
+        ///     Clears the collection.
+        /// </summary>
+        public override void Clear()
+        {
+            this._version = 0;
+            var oldCount = this.Count;
+            this._order.Clear();
+            this._values.Clear();
+            UpdateCount(-oldCount);
+        }
+
+        /// <summary>
+        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public override void Dispose()
+        {
+            this._disposed = true;
+            this._order.Clear();
+            this._values.Clear();
+        }
+
+        /// <summary>
+        ///     Whether an item with the specified key exists.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>True if exists, false otherwise.</returns>
+        public bool Exists(TKey key)
+        {
+            return GetIndexForKey(key) != -1;
+        }
+
+        /// <summary>
+        ///     Whether an item with the specified index exists.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns>True if exists, false otherwise.</returns>
+        public bool Exists(int index)
+        {
+            return index >= 0 && index < this.Count;
+        }
+
+        /// <summary>
         ///     Gets the index for key.
         /// </summary>
         /// <param name="key">The key.</param>
         /// <returns>The item's index.</returns>
         public int GetIndexForKey(TKey key)
         {
-            return _order.FindIndex(k => k.Equals(key));
+            return this._order.FindIndex(k => k.Equals(key));
         }
 
         /// <summary>
@@ -200,7 +205,7 @@ namespace Velentr.Collections.Collections
         /// <returns>The value associated with the key.</returns>
         public TValue GetItem(TKey key)
         {
-            if (_values.TryGetValue(key, out var value))
+            if (this._values.TryGetValue(key, out var value))
             {
                 return value;
             }
@@ -225,10 +230,11 @@ namespace Velentr.Collections.Collections
         /// <returns></returns>
         public (TKey, TValue, int) GetItemAndMetadata(int index)
         {
-            Validations.ValidateRange(index, nameof(index), 0, Count);
+            Validations.ValidateRange(index, nameof(index), 0, this.Count);
 
-            var key = _order[index];
-            return (key, _values[key], index);
+            var key = this._order[index];
+
+            return (key, this._values[key], index);
         }
 
         /// <summary>
@@ -240,13 +246,14 @@ namespace Velentr.Collections.Collections
         public (TKey, TValue, int) GetItemAndMetadata(TKey key)
         {
             TValue value;
-            if (!_values.TryGetValue(key, out value))
+            if (!this._values.TryGetValue(key, out value))
             {
                 throw new KeyNotFoundException();
             }
 
             var index = GetIndexForKey(key);
-            return (key, _values[key], index);
+
+            return (key, this._values[key], index);
         }
 
         /// <summary>
@@ -256,8 +263,9 @@ namespace Velentr.Collections.Collections
         /// <returns>The item's key.</returns>
         public TKey GetKeyForIndex(int index)
         {
-            Validations.ValidateRange(index, nameof(index), 0, Count);
-            return _order[index];
+            Validations.ValidateRange(index, nameof(index), 0, this.Count);
+
+            return this._order[index];
         }
 
         /// <summary>
@@ -268,8 +276,8 @@ namespace Velentr.Collections.Collections
         public (TKey, TValue, int) PopItem(TKey key)
         {
             var item = GetItemAndMetadata(key);
-            _values.Remove(key);
-            _order.RemoveAt(item.Item3);
+            this._values.Remove(key);
+            this._order.RemoveAt(item.Item3);
             DecrementCount();
 
             return item;
@@ -282,13 +290,13 @@ namespace Velentr.Collections.Collections
         /// <returns>The metadata for the item.</returns>
         public (TKey, TValue, int) PopItem(int index)
         {
-            Validations.ValidateRange(index, nameof(index), 0, Count);
+            Validations.ValidateRange(index, nameof(index), 0, this.Count);
 
-            var key = _order[index];
-            var value = _values[key];
+            var key = this._order[index];
+            var value = this._values[key];
 
-            _values.Remove(key);
-            _order.RemoveAt(index);
+            this._values.Remove(key);
+            this._order.RemoveAt(index);
             DecrementCount();
 
             return (key, value, index);
@@ -319,9 +327,9 @@ namespace Velentr.Collections.Collections
         /// <param name="value">The value.</param>
         public void UpdateItem(int index, TValue value)
         {
-            Validations.ValidateRange(index, nameof(index), 0, Count);
+            Validations.ValidateRange(index, nameof(index), 0, this.Count);
 
-            _values[_order[index]] = value;
+            this._values[this._order[index]] = value;
             IncrementVersion();
         }
 
@@ -332,7 +340,7 @@ namespace Velentr.Collections.Collections
         /// <param name="value">The value.</param>
         public void UpdateItem(TKey key, TValue value)
         {
-            _values[key] = value;
+            this._values[key] = value;
             IncrementVersion();
         }
 
@@ -354,15 +362,15 @@ namespace Velentr.Collections.Collections
         /// <exception cref="CollectionModifiedException"></exception>
         private IEnumerator<KeyValuePair<TKey, TValue>> InternalGetEnumerator()
         {
-            var enumeratorVersion = _version;
-            for (var i = 0; i < Count; i++)
+            var enumeratorVersion = this._version;
+            for (var i = 0; i < this.Count; i++)
             {
-                if (enumeratorVersion != _version)
+                if (enumeratorVersion != this._version)
                 {
                     throw new CollectionModifiedException();
                 }
 
-                yield return new KeyValuePair<TKey, TValue>(_order[i], _values[_order[i]]);
+                yield return new KeyValuePair<TKey, TValue>(this._order[i], this._values[this._order[i]]);
             }
         }
     }

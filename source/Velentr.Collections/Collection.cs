@@ -1,95 +1,96 @@
 ﻿using System;
 using System.Threading;
+
 using Velentr.Core.Helpers.Threading;
 
-namespace Velentr.Collections.Collections
+namespace Velentr.Collections
 {
     /// <summary>
-    /// An abstract Collection
+    ///     An abstract Collection
     /// </summary>
-    /// <seealso cref="System.IDisposable" />
+    /// <seealso cref="IDisposable" />
     public abstract class Collection : IDisposable
     {
         /// <summary>
-        /// The count
+        ///     The count
         /// </summary>
         protected long _count;
 
         /// <summary>
-        /// The disposed
+        ///     The disposed
         /// </summary>
         protected bool _disposed = false;
 
         /// <summary>
-        /// The version
+        ///     The version
         /// </summary>
         protected long _version;
 
         /// <summary>
-        /// Gets the count.
+        ///     Gets the count.
         /// </summary>
         /// <value>
-        /// The count.
+        ///     The count.
         /// </value>
-        public long Count => _count;
+        public long Count => this._count;
 
         /// <summary>
-        /// Gets the version.
+        ///     Gets the version.
         /// </summary>
         /// <value>
-        /// The version.
+        ///     The version.
         /// </value>
-        protected long Version => _version;
+        protected long Version => this._version;
 
         /// <summary>
-        /// Clears the collection.
-        /// </summary>
-        public abstract void Clear();
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public abstract void Dispose();
 
         /// <summary>
-        /// Determines whether this instance is empty.
+        ///     Clears the collection.
+        /// </summary>
+        public abstract void Clear();
+
+        /// <summary>
+        ///     Determines whether this instance is empty.
         /// </summary>
         /// <returns>
-        ///   <c>true</c> if this instance is empty; otherwise, <c>false</c>.
+        ///     <c>true</c> if this instance is empty; otherwise, <c>false</c>.
         /// </returns>
         public bool IsEmpty()
         {
-            return _count == 0;
+            return this._count == 0;
         }
 
         /// <summary>
-        /// Decrements the count.
+        ///     Decrements the count.
         /// </summary>
         protected void DecrementCount()
         {
-            Interlocked.Increment(ref _version);
-            Interlocked.Decrement(ref _count);
+            Interlocked.Increment(ref this._version);
+            Interlocked.Decrement(ref this._count);
         }
 
         /// <summary>
-        /// Increments the count.
+        ///     Increments the count.
         /// </summary>
         protected void IncrementCount()
         {
-            Interlocked.Increment(ref _version);
-            Interlocked.Increment(ref _count);
+            Interlocked.Increment(ref this._version);
+            Interlocked.Increment(ref this._count);
         }
 
         /// <summary>
-        /// Increments the version.
+        ///     Increments the version.
         /// </summary>
         protected void IncrementVersion()
         {
-            Interlocked.Increment(ref _version);
+            Interlocked.Increment(ref this._version);
         }
 
         /// <summary>
-        /// Updates the count.
+        ///     Updates the count.
         /// </summary>
         /// <param name="value">The value.</param>
         protected void UpdateCount(long value)
@@ -99,9 +100,12 @@ namespace Velentr.Collections.Collections
 
             do
             {
-                newCount = _count + value;
-                if (newCount < 0) newCount = 0;
-            } while (!AtomicOperations.CAS(ref _count, newCount, _count));
+                newCount = this._count + value;
+                if (newCount < 0)
+                {
+                    newCount = 0;
+                }
+            } while (!AtomicOperations.CAS(ref this._count, newCount, this._count));
         }
     }
 }

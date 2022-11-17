@@ -1,55 +1,78 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Velentr.Collections.Collections.Internal;
+
 using Velentr.Collections.Exceptions;
+using Velentr.Collections.Internal;
 using Velentr.Core.Helpers.Threading;
 
-namespace Velentr.Collections.Collections.LockFree
+namespace Velentr.Collections.LockFree
 {
     /// <summary>
-    /// Defines a Lock-Free Stack Collection (FILO).
+    ///     Defines a Lock-Free Stack Collection (FILO).
     /// </summary>
     /// <typeparam name="T">The type associated with the Stack instance</typeparam>
     /// <seealso cref="Collections.Net.Collections.Collection" />
-    /// <seealso cref="System.Collections.Generic.IEnumerable{T}" />
-    /// <seealso cref="System.Collections.IEnumerable" />
+    /// <seealso cref="IEnumerable{T}" />
+    /// <seealso cref="IEnumerable" />
     [DebuggerDisplay("Count = {Count}")]
     public class LockFreeStack<T> : Collection, IEnumerable<T>, IEnumerable
     {
         /// <summary>
-        /// The head
+        ///     The head
         /// </summary>
         private Node<T> _head;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LockFreeStack{T}"/> class.
+        ///     Initializes a new instance of the <see cref="LockFreeStack{T}" /> class.
         /// </summary>
         public LockFreeStack()
         {
-            _count = 0;
-            _head = new Node<T>();
+            this._count = 0;
+            this._head = new Node<T>();
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LockFreeStack{T}"/> class.
+        ///     Initializes a new instance of the <see cref="LockFreeStack{T}" /> class.
         /// </summary>
         /// <param name="value">The value.</param>
         public LockFreeStack(T value)
         {
-            _count = 0;
-            _head = new Node<T>();
+            this._count = 0;
+            this._head = new Node<T>();
             Push(value);
         }
 
         /// <summary>
-        /// Clears the collection.
+        ///     Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>
+        ///     An enumerator that can be used to iterate through the collection.
+        /// </returns>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        ///     Returns an enumerator that iterates through a collection.
+        /// </summary>
+        /// <returns>
+        ///     An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
+        /// </returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return InternalGetEnumerator();
+        }
+
+        /// <summary>
+        ///     Clears the collection.
         /// </summary>
         public override void Clear()
         {
-            _version = 0;
-            var oldHead = _head;
-            _head = new Node<T>();
+            this._version = 0;
+            var oldHead = this._head;
+            this._head = new Node<T>();
 
             var nodes = 0;
             while (oldHead != null)
@@ -65,74 +88,53 @@ namespace Velentr.Collections.Collections.LockFree
         }
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public override void Dispose()
         {
-            _disposed = true;
+            this._disposed = true;
             Clear();
-            _head.Dispose();
+            this._head.Dispose();
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        /// An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        /// An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        /// Peeks at the value at the top of the Stack.
+        ///     Peeks at the value at the top of the Stack.
         /// </summary>
         /// <returns>The next value.</returns>
         public T Peek()
         {
-            if (_disposed)
+            if (this._disposed)
             {
                 throw new CollectionDisposedException();
             }
 
-            return _head.Next.Value;
+            return this._head.Next.Value;
         }
 
         /// <summary>
-        /// Pops the next value from the Stack.
+        ///     Pops the next value from the Stack.
         /// </summary>
         /// <returns>The popped value.</returns>
         public T Pop()
         {
-            if (_disposed)
+            if (this._disposed)
             {
                 throw new CollectionDisposedException();
             }
 
             Pop(out var value);
+
             return value;
         }
 
         /// <summary>
-        /// Pops the next value from the Stack.
+        ///     Pops the next value from the Stack.
         /// </summary>
         /// <param name="value">The popped value.</param>
         /// <returns>Whether the Pop was successful or not.</returns>
         public bool Pop(out T value)
         {
-            if (_disposed)
+            if (this._disposed)
             {
                 throw new CollectionDisposedException();
             }
@@ -141,26 +143,28 @@ namespace Velentr.Collections.Collections.LockFree
 
             do
             {
-                node = _head.Next;
+                node = this._head.Next;
                 if (node == null)
                 {
                     value = default;
+
                     return false;
                 }
-            } while (!AtomicOperations.CAS(ref _head.Next, node.Next, node));
+            } while (!AtomicOperations.CAS(ref this._head.Next, node.Next, node));
 
             value = node.Value;
             DecrementCount();
+
             return true;
         }
 
         /// <summary>
-        /// Pushes the specified value onto the Stack.
+        ///     Pushes the specified value onto the Stack.
         /// </summary>
         /// <param name="value">The value to push.</param>
         public void Push(T value)
         {
-            if (_disposed)
+            if (this._disposed)
             {
                 throw new CollectionDisposedException();
             }
@@ -169,17 +173,17 @@ namespace Velentr.Collections.Collections.LockFree
 
             do
             {
-                newNode.Next = _head.Next;
-            } while (!AtomicOperations.CAS(ref _head.Next, newNode, newNode.Next));
+                newNode.Next = this._head.Next;
+            } while (!AtomicOperations.CAS(ref this._head.Next, newNode, newNode.Next));
 
             IncrementCount();
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through the collection.
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>
-        /// An enumerator that can be used to iterate through the collection.
+        ///     An enumerator that can be used to iterate through the collection.
         /// </returns>
         private IEnumerator<T> GetEnumerator()
         {
@@ -187,24 +191,24 @@ namespace Velentr.Collections.Collections.LockFree
         }
 
         /// <summary>
-        /// Internals the get enumerator.
+        ///     Internals the get enumerator.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Collections.Net.Exceptions.CollectionDisposedException"></exception>
         /// <exception cref="Collections.Net.Exceptions.CollectionModifiedException"></exception>
         private IEnumerator<T> InternalGetEnumerator()
         {
-            if (_disposed)
+            if (this._disposed)
             {
                 throw new CollectionDisposedException();
             }
 
-            var enumeratorVersion = _version;
-            var head = _head;
+            var enumeratorVersion = this._version;
+            var head = this._head;
 
             do
             {
-                if (enumeratorVersion != _version)
+                if (enumeratorVersion != this._version)
                 {
                     throw new CollectionModifiedException();
                 }

@@ -7,7 +7,7 @@ using System.Linq;
 using Velentr.Collections.CollectionActions;
 using Velentr.Collections.Exceptions;
 
-namespace Velentr.Collections.Collections
+namespace Velentr.Collections
 {
     /// <summary>
     ///     A size-limited pool
@@ -299,7 +299,7 @@ namespace Velentr.Collections.Collections
         /// <summary>
         ///     Clears the collection.
         /// </summary>
-        /// <seealso cref="Velentr.Collections.Collections.Collection.Clear()" />
+        /// <seealso cref="Collection.Clear()" />
         public override void Clear()
         {
             this._version = 0;
@@ -316,7 +316,7 @@ namespace Velentr.Collections.Collections
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting
         ///     unmanaged resources.
         /// </summary>
-        /// <seealso cref="Velentr.Collections.Collections.Collection.Dispose()" />
+        /// <seealso cref="Collection.Dispose()" />
         public override void Dispose()
         {
             Clear();
