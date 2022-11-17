@@ -9,12 +9,12 @@
     <Company>Christian Webber</Company>
     <RepositoryUrl>https://github.com/vonderborch/Velentr.Collections</RepositoryUrl>
     <PackageTags>Velentr,</PackageTags>
-    <Description>A library</Description>
+    <Description>A library containing a variety of helpful collections</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <Version>2.0.1</Version>
-    <FileVersion>2.0.1</FileVersion>
-    <AssemblyVersion>2.0.1</AssemblyVersion>
+    <Version>2.0.2</Version>
+    <FileVersion>2.0.2</FileVersion>
+    <AssemblyVersion>2.0.2</AssemblyVersion>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
