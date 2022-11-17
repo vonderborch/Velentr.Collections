@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using Velentr.Collections.CollectionActions;
 using Velentr.Collections.Events;
-using Velentr.Collections.Helpers;
+using Velentr.Core.Helpers.General;
 
-namespace Velentr.Collections.Collections.Concurrent
+namespace Velentr.Collections.Collections.LockFree
 {
     /// <summary>
     /// A Pool of objects.
@@ -14,7 +13,7 @@ namespace Velentr.Collections.Collections.Concurrent
     /// <typeparam name="T"></typeparam>
     /// <seealso cref="Collections.Net.Collections.Collection" />
     [DebuggerDisplay("FreeCapacity = {FreeCapacity}, MaxCapacity = {MaxCapacity}")]
-    public class ConcurrentPool<T> : Collection
+    public class LockFreePool<T> : Collection
     {
         /// <summary>
         /// The created event
@@ -39,7 +38,7 @@ namespace Velentr.Collections.Collections.Concurrent
         /// <summary>
         /// The pool
         /// </summary>
-        private readonly ConcurrentQueue<T> _pool;
+        private readonly LockFreeQueue<T> _pool;
 
         /// <summary>
         /// The maximum size
@@ -64,9 +63,9 @@ namespace Velentr.Collections.Collections.Concurrent
         ///     The maximum capacity.
         /// </param>
         /// <param name="pruningAction">         (Optional) The pruning action. </param>
-        public ConcurrentPool(object[] constructorParameters = null, PoolFullAction actionWhenPoolFull = PoolFullAction.IncreaseSize, int capacity = 0, long maxCapacity = 32, PoolPruningAction pruningAction = PoolPruningAction.Ignore)
+        public LockFreePool(object[] constructorParameters = null, PoolFullAction actionWhenPoolFull = PoolFullAction.IncreaseSize, int capacity = 0, long maxCapacity = 32, PoolPruningAction pruningAction = PoolPruningAction.Ignore)
         {
-            _pool = new ConcurrentQueue<T>();
+            _pool = new LockFreeQueue<T>();
             ActionWhenPoolFull = actionWhenPoolFull;
             _constructorParameters = constructorParameters ?? new object[] { };
 
@@ -122,7 +121,7 @@ namespace Velentr.Collections.Collections.Concurrent
         {
             var oldCount = Count;
             _version = 0;
-            while (_pool.TryDequeue(out var _)) ;
+            _pool.Clear();
             _maxSize = 0;
             UpdateCount(-oldCount);
         }
@@ -133,7 +132,7 @@ namespace Velentr.Collections.Collections.Concurrent
         public override void Dispose()
         {
             _disposed = true;
-            while (_pool.TryDequeue(out var _)) ;
+            _pool.Dispose();
             CreatedEvent?.Clear();
             ReusedEvent?.Clear();
             ReturnedEvent?.Clear();
@@ -146,7 +145,7 @@ namespace Velentr.Collections.Collections.Concurrent
         /// <exception cref="Exception">The pool is full!</exception>
         public T Get()
         {
-            if (!_pool.TryDequeue(out var result))
+            if (!_pool.Dequeue(out var result))
             {
                 switch (ActionWhenPoolFull)
                 {
@@ -182,7 +181,7 @@ namespace Velentr.Collections.Collections.Concurrent
             // if we've reached our max capacity and an object is returned, we should dispose of it
             if (FreeCapacity >= MaxCapacity && ActionWhenPruningPool == PoolPruningAction.PruneToMaxCapacity)
             {
-                Helper.DisposeIfPossible<T>(item);
+                DisposingHelpers.DisposeIfPossible<T>(item);
             }
             // otherwise, return it to the pool
             else

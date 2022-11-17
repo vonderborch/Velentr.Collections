@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Velentr.Collections.Exceptions;
-using Velentr.Collections.Helpers;
+using Velentr.Core.Helpers.Validation;
 
 namespace Velentr.Collections.Collections
 {
@@ -102,7 +102,7 @@ namespace Velentr.Collections.Collections
                 return (index == -1, index, key);
             }
 
-            Validation.ValidateRange(index, nameof(index), 0);
+            Validations.ValidateRange(index, nameof(index), 0);
 
             if (index >= Count)
             {
@@ -225,7 +225,7 @@ namespace Velentr.Collections.Collections
         /// <returns></returns>
         public (TKey, TValue, int) GetItemAndMetadata(int index)
         {
-            Validation.ValidateRange(index, nameof(index), 0, Count);
+            Validations.ValidateRange(index, nameof(index), 0, Count);
 
             var key = _order[index];
             return (key, _values[key], index);
@@ -256,7 +256,7 @@ namespace Velentr.Collections.Collections
         /// <returns>The item's key.</returns>
         public TKey GetKeyForIndex(int index)
         {
-            Validation.ValidateRange(index, nameof(index), 0, Count);
+            Validations.ValidateRange(index, nameof(index), 0, Count);
             return _order[index];
         }
 
@@ -282,7 +282,7 @@ namespace Velentr.Collections.Collections
         /// <returns>The metadata for the item.</returns>
         public (TKey, TValue, int) PopItem(int index)
         {
-            Validation.ValidateRange(index, nameof(index), 0, Count);
+            Validations.ValidateRange(index, nameof(index), 0, Count);
 
             var key = _order[index];
             var value = _values[key];
@@ -319,7 +319,7 @@ namespace Velentr.Collections.Collections
         /// <param name="value">The value.</param>
         public void UpdateItem(int index, TValue value)
         {
-            Validation.ValidateRange(index, nameof(index), 0, Count);
+            Validations.ValidateRange(index, nameof(index), 0, Count);
 
             _values[_order[index]] = value;
             IncrementVersion();

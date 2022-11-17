@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Velentr.Collections.Collections.Internal;
 using Velentr.Collections.Exceptions;
-using Velentr.Collections.Helpers;
+using Velentr.Core.Helpers.Threading;
 
 namespace Velentr.Collections.Collections.LockFree
 {

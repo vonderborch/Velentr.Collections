@@ -1,5 +1,5 @@
 ﻿using System;
-using Velentr.Collections.Helpers;
+using Velentr.Core.Helpers.General;
 
 namespace Velentr.Collections.Collections.Internal
 {
@@ -69,7 +69,7 @@ namespace Velentr.Collections.Collections.Internal
             {
                 if (disposing)
                 {
-                    Helper.DisposeIfPossible(Value);
+                    DisposingHelpers.DisposeIfPossible(Value);
                 }
 
                 // Indicate that the instance has been disposed.

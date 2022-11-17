@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using Velentr.Collections.Helpers;
+using Velentr.Core.Helpers.Threading;
 
 namespace Velentr.Collections.Collections
 {

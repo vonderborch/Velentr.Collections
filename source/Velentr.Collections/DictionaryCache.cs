@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Velentr.Collections.Exceptions;
-using Velentr.Collections.Helpers;
+using Velentr.Core.Helpers.Threading;
 
 namespace Velentr.Collections.Collections
 {
