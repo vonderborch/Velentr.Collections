@@ -2,26 +2,30 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32414.318
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{GUID0}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{03B1EF80-4E68-4416-BA9D-ED4B74C4DFF3}"
 	ProjectSection(SolutionItems) = preProject
 		CODEOWNERS = CODEOWNERS
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{1588b4e3-7470-4e85-bde7-9d19878ba995}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{1588B4E3-7470-4E85-BDE7-9D19878BA995}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{aaa6ccaf-d837-4997-8966-3362c23470fb}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{AAA6CCAF-D837-4997-8966-3362C23470FB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "automated", "automated", "{5c303a21-2440-4245-aca3-ec4d898852f6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "automated", "automated", "{5C303A21-2440-4245-ACA3-EC4D898852F6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "manual", "manual", "{3fceabcd-8e1e-403a-bbaf-4afcfc97c2bb}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "manual", "manual", "{3FCEABCD-8E1E-403A-BBAF-4AFCFC97C2BB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Velentr.Collections", "source\Velentr.Collections\Velentr.Collections.csproj", "{569f1c26-b5c3-43c4-ab9b-bfdbee2564a5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Velentr.Collections", "source\Velentr.Collections\Velentr.Collections.csproj", "{569F1C26-B5C3-43C4-AB9B-BFDBEE2564A5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Velentr.Collections.Test", "test\automated\Velentr.Collections.Test\Velentr.Collections.Test.csproj", "{8cc714cb-8b85-4627-acba-8bc5d24e6f68}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Velentr.Collections.Test", "test\automated\Velentr.Collections.Test\Velentr.Collections.Test.csproj", "{8CC714CB-8B85-4627-ACBA-8BC5D24E6F68}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Velentr.Collections.Dev", "test\manual\Velentr.Collections.Dev\Velentr.Collections.Dev.csproj", "{97bf1774-c06f-4175-845f-e70dbff14b20}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Velentr.DevEnv", "test\manual\Velentr.DevEnv\Velentr.DevEnv.shproj", "{227895C9-A4FD-43ED-807B-87AF42D69A34}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Velentr.DevEnv.Console", "test\manual\Velentr.DevEnv.Console\Velentr.DevEnv.Console.csproj", "{1CA64B8A-E5B7-4C0F-8FD9-3CFD98D2A9E8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Velentr.DevEnv.Generic", "test\manual\Velentr.DevEnv.Generic\Velentr.DevEnv.Generic.csproj", "{C51A2D97-1D1C-47FC-9B83-AA296D2BC4A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,30 +33,40 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{569f1c26-b5c3-43c4-ab9b-bfdbee2564a5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{569f1c26-b5c3-43c4-ab9b-bfdbee2564a5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{569f1c26-b5c3-43c4-ab9b-bfdbee2564a5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{569f1c26-b5c3-43c4-ab9b-bfdbee2564a5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8cc714cb-8b85-4627-acba-8bc5d24e6f68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8cc714cb-8b85-4627-acba-8bc5d24e6f68}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8cc714cb-8b85-4627-acba-8bc5d24e6f68}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8cc714cb-8b85-4627-acba-8bc5d24e6f68}.Release|Any CPU.Build.0 = Release|Any CPU
-		{97bf1774-c06f-4175-845f-e70dbff14b20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97bf1774-c06f-4175-845f-e70dbff14b20}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97bf1774-c06f-4175-845f-e70dbff14b20}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97bf1774-c06f-4175-845f-e70dbff14b20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{569F1C26-B5C3-43C4-AB9B-BFDBEE2564A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{569F1C26-B5C3-43C4-AB9B-BFDBEE2564A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{569F1C26-B5C3-43C4-AB9B-BFDBEE2564A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{569F1C26-B5C3-43C4-AB9B-BFDBEE2564A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CC714CB-8B85-4627-ACBA-8BC5D24E6F68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CC714CB-8B85-4627-ACBA-8BC5D24E6F68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CC714CB-8B85-4627-ACBA-8BC5D24E6F68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CC714CB-8B85-4627-ACBA-8BC5D24E6F68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CA64B8A-E5B7-4C0F-8FD9-3CFD98D2A9E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CA64B8A-E5B7-4C0F-8FD9-3CFD98D2A9E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CA64B8A-E5B7-4C0F-8FD9-3CFD98D2A9E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CA64B8A-E5B7-4C0F-8FD9-3CFD98D2A9E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C51A2D97-1D1C-47FC-9B83-AA296D2BC4A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C51A2D97-1D1C-47FC-9B83-AA296D2BC4A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C51A2D97-1D1C-47FC-9B83-AA296D2BC4A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C51A2D97-1D1C-47FC-9B83-AA296D2BC4A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{5c303a21-2440-4245-aca3-ec4d898852f6} = {aaa6ccaf-d837-4997-8966-3362c23470fb}
-		{3fceabcd-8e1e-403a-bbaf-4afcfc97c2bb} = {aaa6ccaf-d837-4997-8966-3362c23470fb}
-		{569f1c26-b5c3-43c4-ab9b-bfdbee2564a5} = {1588b4e3-7470-4e85-bde7-9d19878ba995}
-		{8cc714cb-8b85-4627-acba-8bc5d24e6f68} = {5c303a21-2440-4245-aca3-ec4d898852f6}
-		{97bf1774-c06f-4175-845f-e70dbff14b20} = {3fceabcd-8e1e-403a-bbaf-4afcfc97c2bb}
+		{5C303A21-2440-4245-ACA3-EC4D898852F6} = {AAA6CCAF-D837-4997-8966-3362C23470FB}
+		{3FCEABCD-8E1E-403A-BBAF-4AFCFC97C2BB} = {AAA6CCAF-D837-4997-8966-3362C23470FB}
+		{569F1C26-B5C3-43C4-AB9B-BFDBEE2564A5} = {1588B4E3-7470-4E85-BDE7-9D19878BA995}
+		{8CC714CB-8B85-4627-ACBA-8BC5D24E6F68} = {5C303A21-2440-4245-ACA3-EC4D898852F6}
+		{227895C9-A4FD-43ED-807B-87AF42D69A34} = {3FCEABCD-8E1E-403A-BBAF-4AFCFC97C2BB}
+		{1CA64B8A-E5B7-4C0F-8FD9-3CFD98D2A9E8} = {3FCEABCD-8E1E-403A-BBAF-4AFCFC97C2BB}
+		{C51A2D97-1D1C-47FC-9B83-AA296D2BC4A6} = {3FCEABCD-8E1E-403A-BBAF-4AFCFC97C2BB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {GUID05}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		test\manual\Velentr.DevEnv\Velentr.DevEnv.projitems*{227895c9-a4fd-43ed-807b-87af42d69a34}*SharedItemsImports = 13
+		test\manual\Velentr.DevEnv\Velentr.DevEnv.projitems*{c51a2d97-1d1c-47fc-9b83-aa296d2bc4a6}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
