@@ -1,239 +1,344 @@
-﻿using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
-using Velentr.Collections.Exceptions;
+namespace Velentr.Collections;
 
-namespace Velentr.Collections
+[DebuggerDisplay("Count = {Count}")]
+public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary where TKey : notnull
+    where TValue : notnull
 {
-    /// <summary>
-    ///     A dictionary implementation where keys can be accessed using the value and vice-versa.
-    /// </summary>
-    /// <typeparam name="TKey">The type of the keys.</typeparam>
-    /// <typeparam name="TValue">The type of the values.</typeparam>
-    /// <seealso cref="Collection" />
-    /// <seealso cref="IEnumerable{T}" />
-    /// <seealso cref="IEnumerable" />
-    [DebuggerDisplay("Count = {Count}")]
-    public class BiDirectionalDictionary<TKey, TValue> : Collection, IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable
+    [JsonIgnore] private readonly Dictionary<TKey, TValue> keyToValue;
+
+    [JsonIgnore] private readonly Dictionary<TValue, TKey> valueToKey;
+
+    public BiDirectionalDictionary()
     {
-        /// <summary>
-        ///     A lock for when we add new items to the dictionaries.
-        /// </summary>
-        private readonly object _addLock = new();
+        this.SyncRoot = new object();
+        this.keyToValue = new Dictionary<TKey, TValue>();
+        this.valueToKey = new Dictionary<TValue, TKey>();
+    }
 
-        /// <summary>
-        ///     The internal dictionary representing the keys to values mapping.
-        /// </summary>
-        private readonly Dictionary<TKey, TValue> _keyToValue;
-
-        /// <summary>
-        ///     The internal dictionary representing the values to keys mapping.
-        /// </summary>
-        private readonly Dictionary<TValue, TKey> _valueToKey;
-
-        /// <summary>
-        ///     Constructor.
-        /// </summary>
-        public BiDirectionalDictionary()
+    [JsonConstructor]
+    public BiDirectionalDictionary(IDictionary<TKey, TValue> source)
+    {
+        this.SyncRoot = new object();
+        this.keyToValue = new Dictionary<TKey, TValue>(source.Count);
+        this.valueToKey = new Dictionary<TValue, TKey>(source.Count);
+        foreach (KeyValuePair<TKey, TValue> kvp in source)
         {
-            this._keyToValue = new Dictionary<TKey, TValue>();
-            this._valueToKey = new Dictionary<TValue, TKey>();
+            this.keyToValue.Add(kvp.Key, kvp.Value);
+            this.valueToKey.Add(kvp.Value, kvp.Key);
+        }
+    }
+
+
+    [JsonPropertyName("source")] public ReadOnlyDictionary<TKey, TValue> KeysToValues => new(this.keyToValue);
+
+    [JsonIgnore] public ReadOnlyDictionary<TValue, TKey> ValuesToKeys => new(this.valueToKey);
+
+    int ICollection.Count => this.keyToValue.Count;
+
+    public bool IsFixedSize => false;
+
+    bool IDictionary.IsReadOnly => false;
+    public bool IsSynchronized => false;
+
+    ICollection IDictionary.Keys => this.keyToValue.Keys;
+    
+    [field: JsonIgnore] public object SyncRoot { get; }
+
+    ICollection IDictionary.Values => this.keyToValue.Values;
+
+    // Explicit interface implementations for IDictionary
+    public void Add(object key, object? value)
+    {
+        if (key is TKey tKey && value is TValue tValue)
+        {
+            Add(tKey, tValue);
+        }
+        else
+        {
+            throw new ArgumentException("Invalid key or value type.");
+        }
+    }
+
+    public bool Contains(object key)
+    {
+        if (key is TKey tKey)
+        {
+            return this.keyToValue.ContainsKey(tKey);
         }
 
-        /// <summary>
-        ///     Constructor.
-        /// </summary>
-        /// <param name="dictionary">The base dictionary to convert.</param>
-        public BiDirectionalDictionary(IDictionary<TKey, TValue> dictionary)
+        if (key is TValue tValue)
         {
-            this._keyToValue = new Dictionary<TKey, TValue>(dictionary);
-            this._valueToKey = new Dictionary<TValue, TKey>(dictionary.ToDictionary(x => x.Value, x => x.Key));
+            return this.valueToKey.ContainsKey(tValue);
         }
 
-        /// <summary>
-        ///     Gets or sets the <see cref="TKey" /> at the specified value.
-        /// </summary>
-        /// <value>
-        ///     The <see cref="TValue" />.
-        /// </value>
-        /// <param name="v">The value.</param>
-        /// <returns>The key.</returns>
-        public TKey this[TValue v]
-        {
-            get => this._valueToKey[v];
+        return false;
+    }
 
-            set
+    public void CopyTo(Array array, int index)
+    {
+        if (array == null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+
+        if (array.Rank != 1)
+        {
+            throw new ArgumentException("Array must be one-dimensional.");
+        }
+
+        if (index < 0 || index >= array.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        if (array.Length - index < this.keyToValue.Count)
+        {
+            throw new ArgumentException("The array is too small to copy the elements.");
+        }
+
+        foreach (KeyValuePair<TKey, TValue> kvp in this.keyToValue)
+        {
+            array.SetValue(new DictionaryEntry(kvp.Key, kvp.Value), index++);
+        }
+    }
+
+    IDictionaryEnumerator IDictionary.GetEnumerator()
+    {
+        return ((IDictionary)this.keyToValue).GetEnumerator();
+    }
+
+    public object? this[object key]
+    {
+        get
+        {
+            if (key is TKey tKey1 && this.keyToValue.TryGetValue(tKey1, out TValue? value))
             {
-                var oldKey = this._valueToKey[v];
-                this._valueToKey[v] = value;
-                this._keyToValue.Remove(oldKey);
-                this._keyToValue.Add(value, v);
+                return value;
+            }
+
+            if (key is TValue tValue && this.valueToKey.TryGetValue(tValue, out TKey? tKey2))
+            {
+                return tKey2;
+            }
+
+            return null;
+        }
+        set
+        {
+            if (key is TKey tKey && value is TValue tValue)
+            {
+                this[tKey] = tValue;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid key or value type.");
             }
         }
+    }
 
-        /// <summary>
-        ///     Gets or sets the <see cref="TValue" /> at the specified key.
-        /// </summary>
-        /// <value>
-        ///     The <see cref="TValue" />.
-        /// </value>
-        /// <param name="k">The key.</param>
-        /// <returns>The value.</returns>
-        public TValue this[TKey k]
+    public void Remove(object key)
+    {
+        if (key is TKey tKey)
         {
-            get => this._keyToValue[k];
+            Remove(tKey);
+        }
+        else if (key is TValue tValue)
+        {
+            RemoveValue(tValue);
+        }
+        else
+        {
+            throw new ArgumentException("Invalid key type.");
+        }
+    }
 
-            set
+    public int Count => this.keyToValue.Count;
+
+    public bool IsReadOnly => false;
+
+    // Explicit interface implementations for IDictionary<TKey, TValue>
+    public ICollection<TKey> Keys => this.keyToValue.Keys;
+
+    public ICollection<TValue> Values => this.keyToValue.Values;
+
+    public void Add(TKey key, TValue value)
+    {
+        lock (this.SyncRoot)
+        {
+            if (this.keyToValue.ContainsKey(key) || this.valueToKey.ContainsKey(value))
             {
-                var oldValue = this._keyToValue[k];
-                this._keyToValue[k] = value;
-                this._valueToKey.Remove(oldValue);
-                this._valueToKey.Add(value, k);
+                throw new ArgumentException("Duplicate key or value.");
             }
-        }
 
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
-        {
-            return InternalGetEnumerator();
+            this.keyToValue[key] = value;
+            this.valueToKey[value] = key;
         }
+    }
 
-        /// <summary>
-        ///     Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        ///     An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
+    public void Add(KeyValuePair<TKey, TValue> item)
+    {
+        Add(item.Key, item.Value);
+    }
+
+    public void Clear()
+    {
+        lock (this.SyncRoot)
         {
-            return InternalGetEnumerator();
+            this.keyToValue.Clear();
+            this.valueToKey.Clear();
         }
+    }
 
-        /// <summary>
-        ///     Adds an item to the bi-directional dictionary.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        public void AddItem(TKey key, TValue value)
+    public bool Contains(KeyValuePair<TKey, TValue> item)
+    {
+        return this.keyToValue.TryGetValue(item.Key, out TValue? value) &&
+               EqualityComparer<TValue>.Default.Equals(value, item.Value);
+    }
+
+    public bool ContainsKey(TKey key)
+    {
+        lock (this.SyncRoot)
         {
-            lock (this._addLock)
+            return this.keyToValue.ContainsKey(key);
+        }
+    }
+
+    public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+    {
+        ((ICollection<KeyValuePair<TKey, TValue>>)this.keyToValue).CopyTo(array, arrayIndex);
+    }
+
+    IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+    {
+        return this.keyToValue.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return this.keyToValue.GetEnumerator();
+    }
+
+    public TValue this[TKey key]
+    {
+        get
+        {
+            if (!this.keyToValue.TryGetValue(key, out TValue? value))
             {
-                if (this._keyToValue.ContainsKey(key))
+                throw new KeyNotFoundException();
+            }
+
+            return value;
+        }
+        set
+        {
+            lock (this.SyncRoot)
+            {
+                if (this.keyToValue.TryGetValue(key, out TValue? existingValue))
                 {
-                    throw new ArgumentException(nameof(key), $"An item with the key [{key}] already exists!");
+                    this.valueToKey.Remove(existingValue);
                 }
 
-                if (this._valueToKey.ContainsKey(value))
+                if (this.valueToKey.TryGetValue(value, out TKey? existingKey))
                 {
-                    throw new ArgumentException(nameof(value), $"An item with the value [{value}] already exists!");
+                    this.keyToValue.Remove(existingKey);
                 }
 
-                this._keyToValue.Add(key, value);
-                this._valueToKey.Add(value, key);
-                IncrementCount();
+                this.keyToValue[key] = value;
+                this.valueToKey[value] = key;
             }
         }
+    }
 
-        /// <summary>
-        ///     Removes an item.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        public void RemoveItem(TKey key)
+    public bool Remove(TKey key)
+    {
+        lock (this.SyncRoot)
         {
-            var value = this._keyToValue[key];
-            this._keyToValue.Remove(key);
-            this._valueToKey.Remove(value);
-            DecrementCount();
-        }
-
-        /// <summary>
-        ///     Removes an item.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public void RemoveItem(TValue value)
-        {
-            var key = this._valueToKey[value];
-            this._keyToValue.Remove(key);
-            this._valueToKey.Remove(value);
-            DecrementCount();
-        }
-
-        /// <summary>
-        ///     Whether an item with the key already exists.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <returns>Whether a matching item exists.</returns>
-        public bool ContainsKey(TKey key)
-        {
-            return this._keyToValue.ContainsKey(key);
-        }
-
-        /// <summary>
-        ///     Whether an item with the value already exists.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>Whether a matching item exists.</returns>
-        public bool ContainsValue(TValue value)
-        {
-            return this._valueToKey.ContainsKey(value);
-        }
-
-        /// <summary>
-        ///     Clears the collection.
-        /// </summary>
-        public override void Clear()
-        {
-            UpdateCount(0);
-            this._keyToValue.Clear();
-            this._valueToKey.Clear();
-        }
-
-        /// <summary>
-        ///     Disposes the collection.
-        /// </summary>
-        public override void Dispose()
-        {
-            UpdateCount(0);
-            this._keyToValue.Clear();
-            this._valueToKey.Clear();
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        private IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Internals the get enumerator.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="CollectionModifiedException"></exception>
-        private IEnumerator<KeyValuePair<TKey, TValue>> InternalGetEnumerator()
-        {
-            var enumeratorVersion = this._version;
-            foreach (var pair in this._keyToValue)
+            if (!this.keyToValue.TryGetValue(key, out TValue? value))
             {
-                if (enumeratorVersion != this._version)
-                {
-                    throw new CollectionModifiedException();
-                }
-
-                yield return pair;
+                return false;
             }
+
+            this.keyToValue.Remove(key);
+            this.valueToKey.Remove(value);
+            return true;
         }
+    }
+
+    public bool Remove(KeyValuePair<TKey, TValue> item)
+    {
+        lock (this.SyncRoot)
+        {
+            if (Contains(item))
+            {
+                return Remove(item.Key);
+            }
+
+            return false;
+        }
+    }
+
+    public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
+    {
+        return this.keyToValue.TryGetValue(key, out value);
+    }
+
+    public bool ContainsValue(TValue value)
+    {
+        lock (this.SyncRoot)
+        {
+            return this.valueToKey.ContainsKey(value);
+        }
+    }
+
+    public TKey GetKey(TValue value)
+    {
+        lock (this.SyncRoot)
+        {
+            if (!this.valueToKey.TryGetValue(value, out TKey? key))
+            {
+                throw new KeyNotFoundException();
+            }
+
+            return key;
+        }
+    }
+
+    public TValue GetValue(TKey key)
+    {
+        lock (this.SyncRoot)
+        {
+            if (!this.keyToValue.TryGetValue(key, out TValue? value))
+            {
+                throw new KeyNotFoundException();
+            }
+
+            return value;
+        }
+    }
+
+    public bool RemoveValue(TValue value)
+    {
+        lock (this.SyncRoot)
+        {
+            if (!this.valueToKey.TryGetValue(value, out TKey? key))
+            {
+                return false;
+            }
+
+            this.valueToKey.Remove(value);
+            this.keyToValue.Remove(key);
+            return true;
+        }
+    }
+
+    public bool TryGetKey(TValue value, [MaybeNullWhen(false)] out TKey key)
+    {
+        return this.valueToKey.TryGetValue(value, out key);
     }
 }

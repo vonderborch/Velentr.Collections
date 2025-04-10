@@ -6,22 +6,22 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
+        <Configurations>Release;Debug</Configurations>
+        <Platforms>AnyCPU</Platforms>
         <AssemblyName>Velentr.Collections.Test</AssemblyName>
         <RootNamespace>Velentr.Collections.Test</RootNamespace>
-        <Configurations>Debug;Release</Configurations>
-        <Platforms>AnyCPU</Platforms>
         <ApplicationIcon>..\..\..\logo.ico</ApplicationIcon>
-        <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <FileVersion>1.0.0.0</FileVersion>
+        <AssemblyVersion>3.0.0.0</AssemblyVersion>
+        <FileVersion>3.0.0.0</FileVersion>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <OutputPath>..\..\..\debug\tests\automated\core\</OutputPath>
-        <DefineConstants>TRACE;Core</DefineConstants>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <OutputPath>..\..\..\debug\tests\automated\fna\</OutputPath>
+        <DefineConstants>TRACE;FNA</DefineConstants>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <OutputPath>..\..\..\release\tests\automated\core\</OutputPath>
-        <DefineConstants>TRACE;Core</DefineConstants>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <OutputPath>..\..\..\release\tests\automated\fna\</OutputPath>
+        <DefineConstants>TRACE;FNA</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
@@ -37,6 +37,16 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="..\..\..\..\.fna\fnalibs\**">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="app.config">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\.fna\FNA\FNA.Core.csproj" />
       <ProjectReference Include="..\..\..\source\Velentr.Collections\Velentr.Collections.csproj" />
     </ItemGroup>
 

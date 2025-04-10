@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>Velentr.Collections.TestApp</AssemblyName>
+        <RootNamespace>Velentr.Collections.TestApp</RootNamespace>
+        <LangVersion>default</LangVersion>
+        <Configurations>Release;Debug</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <ApplicationIcon>..\..\..\logo.ico</ApplicationIcon>
+        <AssemblyVersion>3.0.0.0</AssemblyVersion>
+        <FileVersion>3.0.0.0</FileVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <DefineConstants>TRACE;FNA</DefineConstants>
+        <OutputPath>..\..\..\debug\tests\manual\fna\</OutputPath>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <DefineConstants>TRACE;FNA</DefineConstants>
+        <OutputPath>..\..\..\release\tests\manual\fna\</OutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\..\..\..\.fna\fnalibs\**">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="app.config">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Content\font.xnb">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\.fna\FNA\FNA.Core.csproj" />
+      <ProjectReference Include="..\..\..\source\Velentr.Collections\Velentr.Collections.csproj" />
+    </ItemGroup>
+
+    <Import Project="..\Velentr.Collections.Shared.TestApp\Velentr.Collections.Shared.TestApp.projitems" Label="Shared"/>
+
+</Project>

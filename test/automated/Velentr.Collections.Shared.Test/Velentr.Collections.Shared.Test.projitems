@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+        <HasSharedItems>true</HasSharedItems>
+        <SharedGUID>6efba8a9-a407-4029-bdd0-651d22a87386</SharedGUID>
+    </PropertyGroup>
+    <PropertyGroup Label="Configuration">
+        <Import_RootNamespace>Velentr.Collections.Test</Import_RootNamespace>
+    </PropertyGroup>
+    <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)TestBiDirectionalDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSizeLimitedList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSizeLimitedOrderedDictionary.cs" />
+    </ItemGroup>
+</Project>
