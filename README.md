@@ -2,7 +2,7 @@
 
 ![Logo](https://raw.githubusercontent.com/vonderborch/Velentr.Collections/refs/heads/main/logo.png)
 
-A variety of helpful collections.
+A variety of helpful collections, with a focus on thread-safety.
 
 ## Installation
 
@@ -10,7 +10,8 @@ A variety of helpful collections.
 
 [![NuGet version (Velentr.Collections)](https://img.shields.io/nuget/v/Velentr.Collections.svg?style=flat-square)](https://www.nuget.org/packages/Velentr.Collections/)
 
-The recommended installation approach is to use the available nuget package: [Velentr.Collections](https://www.nuget.org/packages/Velentr.Collections/)
+The recommended installation approach is to use the available nuget
+package: [Velentr.Collections](https://www.nuget.org/packages/Velentr.Collections/)
 
 ### Clone
 
@@ -18,18 +19,24 @@ Alternatively, you can clone this repo and reference the Velentr.Collections pro
 
 ## Available Collections
 
-| Collection              | Description                                                                                                                                                 | Variations | Min Supported Library Version | Documentation                             |
-|-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|-------------------------------|-------------------------------------------|
-| BiDirectionalDictionary | A dictionary where you can access the value for a given key, and the key for a given value                                                                  |            | 1.2.0                         | [Documentation](#BiDirectionalDictionary) |
-| SizeLimitedList         | A list that is limited in maximum capacity and will automatically remove items when it reaches capacity                                                     |            | 1.1.0                         | [Documentation](#SizeLimitedList)         |
-| SizeLimitedDictionary   | A dictionary that is limited in maximum capacity and will automatically remove items when it reaches capacity                                               |            | 1.1.0                         | [Documentation](#SizeLimitedDictionary)   |
-| Pool                    | A pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection |            | 1.0.0                         | [Documentation](#Pool)                    |
+### Collections
+
+| Collection              | Description                                                                                                                                                 | Variations     | Min Supported Library Version | Documentation                             |
+|-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|-------------------------------|-------------------------------------------|
+| BiDirectionalDictionary | A dictionary where you can access the value for a given key, and the key for a given value                                                                  |                | 1.2.0                         | [Documentation](#BiDirectionalDictionary) |
+| SizeLimitedList         | A list that is limited in maximum capacity and will automatically remove items when it reaches capacity                                                     |                | 1.1.0                         | [Documentation](#SizeLimitedList)         |
+| SizeLimitedDictionary   | A dictionary that is limited in maximum capacity and will automatically remove items when it reaches capacity                                               |                | 1.1.0                         | [Documentation](#SizeLimitedDictionary)   |
+| Pool                    | A pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection | ConcurrentPool | 1.0.0                         | [Documentation](#Pool)                    |
+| ConcurrentPriorityQueue | A thread-safe priority queue where the item with the lowest priority is returned on dequeue                                                                 |                | 1.0.0                         | [Documentation](#ConcurrentPriorityQueue) |
+
+## Collection Documentation
 
 ### BiDirectionalDictionary
 
 A dictionary where you can access the value for a given key, and the key for a given value.
 
 Example usage:
+
 ```csharp
 var _dictionary = new BiDirectionalDictionary<int, string>();
 _dictionary.Add(1, "One");
@@ -44,6 +51,7 @@ Console.WriteLine(_dictionary["Two"]); // 2
 A list that is limited in maximum capacity and will automatically remove items when it reaches capacity.
 
 Example usage:
+
 ```csharp
 var list = new SizeLimitedList<int>(3);
 list.Add(1);
@@ -84,6 +92,7 @@ Different actions that can be taken when the list is full, detailed below. These
 A dictionary that is limited in maximum capacity and will automatically remove items when it reaches capacity.
 
 Example usage:
+
 ```csharp
 var dict = new SizeLimitedDictionary<string, DateTime>(3);
 dict.Add(1);
@@ -124,7 +133,10 @@ Different actions that can be taken when the dictionary is full, detailed below.
 A pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it
 can help reduce garbage collection.
 
+Note: The pool can emit events when items are added or removed. This is useful for tracking changes in the pool.
+
 Example usage:
+
 ```csharp
 var _dictionary = new Pool<int>(2);
 pool.Add(1);
@@ -143,11 +155,23 @@ Console.WriteLine(pool[1].ToString()); // 2
 
 Different actions that can be taken when the pool is full, detailed below. These are set in the constructor.
 
-| Action                                        | Description                                                                                           |
-|-----------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| SizeLimitedCollectionFullAction.PopNewestItem | Removes the newest item from the dictionary, effectively replacing it with the new value being added. |
-| SizeLimitedCollectionFullAction.PopOldestItem | Removes the oldest item from the dictionary.                                                          |
+| Action                        | Description                                                                                     |
+|-------------------------------|-------------------------------------------------------------------------------------------------|
+| PoolFullAction.PopNewestItem  | Removes the newest item from the pool, effectively replacing it with the new value being added. |
+| PoolFullAction.PopOldestItem  | Removes the oldest item from the pool.                                                          |
+| PoolFullAction.Ignore         | The new item is ignored and not added to the pool, and no items are removed from the pool.      |
+| PoolFullAction.Grow           | The maximum size of the pool is increased to accommodate the new item.                          |
+| PoolFullAction.ThrowException | An exception is thrown when the pool is full.                                                   |
 
+#### Events
+
+The Pool class can emit events when items are added or removed. This is useful for tracking changes in the pool.
+
+| Event                 | Description                                                            |
+|-----------------------|------------------------------------------------------------------------|
+| ClaimedSlotEvent      | Emitted when an item is added to the pool and is able to claim a slot. |
+| ReleasedSlotEvent     | Emitted when an item is removed from the pool and releases its slot.   |
+| SlotClaimFailureEvent | Emitted when an item fails to claim a slot.                            |
 
 ## Deprecated Collections
 
@@ -157,7 +181,6 @@ Different actions that can be taken when the pool is full, detailed below. These
 | OrderedDictionary | Use .NET OrderedDictionary instead.      | 2.0.2                       | 2.0.2                         |
 | SizeLimitedPool   | Use Velentr.Collections.Pool instead.    | 2.0.2                       | 2.0.2                         |
 | HistoryCollection | Use Velentr.Collections.History instead. | 2.0.2                       | 2.0.2                         |
-
 
 ## OLD Available Collections
 
@@ -179,9 +202,10 @@ Different actions that can be taken when the pool is full, detailed below. These
 | Collections            | BiDirectionalDictionary        | A bi-directional dictionary, where you can access the value for a key/value pair using the key or vice-versa                                                | 1.2.0                         | `var c = new HistoryCollection<string>();`                                                |
 
 **_NOTES:_**
-- **Collections.Concurrent collections**: _Collections under this namespace utilize .NET Concurrent collections internally_
-- **Lock-Free**: _Collections under this namespace utilize custom lock-free base collections_
 
+- **Collections.Concurrent collections**: _Collections under this namespace utilize .NET Concurrent collections
+  internally_
+- **Lock-Free**: _Collections under this namespace utilize custom lock-free base collections_
 
 ## Development
 

@@ -21,12 +21,12 @@
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <OutputPath>..\..\debug\core</OutputPath>
+        <OutputPath>..\..\debug\core</OutputPath>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <OutputPath>..\..\release\core</OutputPath>
-      <DocumentationFile>..\..\release\core\Velentr.Collections.xml</DocumentationFile>
+        <OutputPath>..\..\release\core</OutputPath>
+        <DocumentationFile>..\..\release\core\Velentr.Collections.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -40,11 +40,6 @@
             <PackagePath></PackagePath>
             <Link>README.md</Link>
         </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Concurrent\" />
-      <Folder Include="LockFree\" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">

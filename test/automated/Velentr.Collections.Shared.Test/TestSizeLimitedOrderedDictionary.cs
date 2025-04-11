@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using Velentr.Collections;
-using Velentr.Collections.CollectionActions;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
+using Velentr.Collections.CollectionFullActions;
 
 namespace Velentr.Collections.Test;
 

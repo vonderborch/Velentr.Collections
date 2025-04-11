@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using Velentr.Collections;
 using System;
-using Velentr.Collections.CollectionActions;
+using Velentr.Collections.CollectionFullActions;
 
 namespace Velentr.Collections.Test;
 

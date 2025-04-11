@@ -9,9 +9,14 @@
         <Import_RootNamespace>Velentr.Collections.Test</Import_RootNamespace>
     </PropertyGroup>
     <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Concurrent\TestConcurrentPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Concurrent\TestConcurrentPriorityQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Concurrent\TestConcurrentSizeLimitedList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LockFree\TestLockFreeStack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestBiDirectionalDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestHistory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestPool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestSizeLimitedList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestSizeLimitedOrderedDictionary.cs" />
-    </ItemGroup>
+  </ItemGroup>
 </Project>
