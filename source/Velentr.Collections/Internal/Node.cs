@@ -9,7 +9,7 @@ public class Node<T> : IDisposable
     /// <summary>
     /// Gets or sets the reference to the next node in the linked structure.
     /// </summary>
-    public Node<T>? Next;
+    public volatile Node<T>? Next;
 
     /// <summary>
     /// Gets or sets the value stored in this node.

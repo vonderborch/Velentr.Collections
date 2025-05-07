@@ -12,6 +12,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Concurrent\TestConcurrentPool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Concurrent\TestConcurrentPriorityQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Concurrent\TestConcurrentSizeLimitedList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LockFree\TestLockFreeList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LockFree\TestLockFreePriorityQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LockFree\TestLockFreeQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LockFree\TestLockFreeStack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestBiDirectionalDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHistory.cs" />

@@ -1,8 +1,7 @@
 using System.Collections;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using Velentr.Collections.Internal;
-using Velentr.Collections.PoolHelpers;
-using Velentr.Core.Threading;
 
 namespace Velentr.Collections.LockFree;
 
@@ -14,9 +13,16 @@ namespace Velentr.Collections.LockFree;
 [DebuggerDisplay("Count = {Count}")]
 public class LockFreeStack<T> : ICollection, IEnumerable<T>
 {
+    [JsonIgnore]
     private Node<T> head;
+    
+    [JsonIgnore]
     private int count;
+    
+    [JsonIgnore]
     private ulong version;
+    
+    [JsonIgnore]
     private readonly object syncRoot = new object();
 
     /// <summary>
@@ -39,6 +45,45 @@ public class LockFreeStack<T> : ICollection, IEnumerable<T>
         count = 0;
         head = new Node<T>();
         Push(value);
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LockFreeStack{T}"/> class with an initial value.
+    /// </summary>
+    /// <param name="collection">The values to add to the stack.</param>
+    [JsonConstructor]
+    public LockFreeStack(IEnumerable<T> collection)
+    {
+        version = 0;
+        count = 0;
+        head = new Node<T>();
+        foreach (var item in collection)
+        {
+            Push(item);
+        }
+    }
+
+    /// <summary>
+    /// Transforms the stack into a list.
+    /// </summary>
+    [JsonPropertyName("collection")]
+    public List<T> ToList
+    {
+        get
+        {
+            var enumVersion = this.version;
+            List<T> list = new();
+            foreach (var item in this)
+            {
+                if (enumVersion != this.version)
+                {
+                    throw new InvalidOperationException("Collection was modified during enumeration.");
+                }
+                list.Add(item);
+            }
+
+            return list;
+        }
     }
 
     /// <summary>
@@ -76,7 +121,7 @@ public class LockFreeStack<T> : ICollection, IEnumerable<T>
                 value = default;
                 return false;
             }
-        } while (!Helpers.CompareAndSwap(ref this.head.Next, node, this.head.Next));
+        } while (!Helpers.CompareAndSwap(ref this.head.Next, node.Next, this.head.Next));
         
         value = node.Value;
         Interlocked.Increment(ref this.version);

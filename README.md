@@ -21,13 +21,25 @@ Alternatively, you can clone this repo and reference the Velentr.Collections pro
 
 ### Collections
 
-| Collection              | Description                                                                                                                                                 | Variations     | Min Supported Library Version | Documentation                             |
-|-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|-------------------------------|-------------------------------------------|
-| BiDirectionalDictionary | A dictionary where you can access the value for a given key, and the key for a given value                                                                  |                | 1.2.0                         | [Documentation](#BiDirectionalDictionary) |
-| SizeLimitedList         | A list that is limited in maximum capacity and will automatically remove items when it reaches capacity                                                     |                | 1.1.0                         | [Documentation](#SizeLimitedList)         |
-| SizeLimitedDictionary   | A dictionary that is limited in maximum capacity and will automatically remove items when it reaches capacity                                               |                | 1.1.0                         | [Documentation](#SizeLimitedDictionary)   |
-| Pool                    | A pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection | ConcurrentPool | 1.0.0                         | [Documentation](#Pool)                    |
-| ConcurrentPriorityQueue | A thread-safe priority queue where the item with the lowest priority is returned on dequeue                                                                 |                | 1.0.0                         | [Documentation](#ConcurrentPriorityQueue) |
+#### Core Collections
+
+#### 
+
+| Collection                        | Description                                                                                                                                                             | Min Supported Library Version | Documentation                             |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------|-------------------------------------------|
+| BiDirectionalDictionary           | A dictionary where you can access the value for a given key, and the key for a given value                                                                              | 1.2.0                         | [Documentation](#BiDirectionalDictionary) |
+| ConcurrentBiDirectionalDictionary | A thread-safe dictionary where you can access the value for a given key, and the key for a given value                                                                  | 1.2.0                         | [Documentation](#BiDirectionalDictionary) |
+| LockFreeBiDirectionalDictionary   | A lock-free dictionary where you can access the value for a given key, and the key for a given value                                                                    | 1.2.0                         | [Documentation](#BiDirectionalDictionary) |
+| SizeLimitedList                   | A list that is limited in maximum capacity and will automatically remove items when it reaches capacity                                                                 | 1.1.0                         | [Documentation](#SizeLimitedList)         |
+| SizeLimitedDictionary             | A dictionary that is limited in maximum capacity and will automatically remove items when it reaches capacity                                                           | 1.1.0                         | [Documentation](#SizeLimitedDictionary)   |
+| Pool                              | A pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection             | 1.0.0                         | [Documentation](#Pool)                    |
+| ConcurrentPriorityQueue           | A thread-safe priority queue where the item with the lowest priority is returned on dequeue                                                                             | 1.0.0                         | [Documentation](#ConcurrentPriorityQueue) |
+| ConcurrentPool                    | A thread-safe pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection | 1.0.0                         | [Documentation](#ConcurrentPool)          |
+| LockFreePriorityQueue             | A lock-free priority queue where the item with the lowest priority is returned on dequeue                                                                               | 1.0.0                         | [Documentation](#LockFreePriorityQueue)   |
+| LockFreePool                      | A lock-free pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection   | 1.0.0                         | [Documentation](#LockFreePool)            |
+| LockFreeQueue                     | A lock-free queue implementation                                                                                                                                        | 1.0.0                         | [Documentation](#LockFreeQueue)           |
+| LockFreeStack                     | A lock-free stack implementation                                                                                                                                        | 1.0.0                         | [Documentation](#LockFreeStack)           |
+
 
 ## Collection Documentation
 
