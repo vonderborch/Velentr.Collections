@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Diagnostics;
+using Velentr.Collections.CollectionFullActions;
 
 namespace Velentr.Collections;
 
 [DebuggerDisplay("Count = {Count}, Current Position = {CurrentPosition}, Can Undo = {CanUndo}, Can Redo = {CanRedo}")]
 public class History<T>(int maxHistoryItems = 32) : ICollection<T>
 {
-    private readonly SizeLimitedList<T> internalList = new(maxHistoryItems);
+    private readonly SizeLimitedList<T> internalList = new(maxHistoryItems, actionWhenFull: SizeLimitedCollectionFullAction.PopOldestItem);
 
     /// <summary>
     ///     Gets a value indicating whether a redo operation can be performed.
@@ -225,6 +226,15 @@ public class History<T>(int maxHistoryItems = 32) : ICollection<T>
         }
 
         return output;
+    }
+
+    /// <summary>
+    ///     Changes the maximum size of the history and adjusts the internal list accordingly.
+    /// </summary>
+    /// <param name="newMaxSize">The new maximum size of the history.</param>
+    public void SetMaxSize(int newMaxSize)
+    {
+        this.internalList.ChangeMaxSize(newMaxSize);
     }
 
     /// <summary>

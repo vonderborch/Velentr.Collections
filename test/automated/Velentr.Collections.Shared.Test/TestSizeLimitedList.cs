@@ -1,6 +1,3 @@
-using NUnit.Framework;
-using Velentr.Collections;
-using System;
 using Velentr.Collections.CollectionFullActions;
 
 namespace Velentr.Collections.Test;
@@ -11,7 +8,7 @@ public class TestSizeLimitedList
     [Test]
     public void Test_AddingElementsWithinLimit()
     {
-        var list = new SizeLimitedList<int>(5);
+        SizeLimitedList<int> list = new(5);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -25,7 +22,7 @@ public class TestSizeLimitedList
     [Test]
     public void Test_AddingElementsExceedingLimit()
     {
-        var list = new SizeLimitedList<int>(3);
+        SizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -40,7 +37,7 @@ public class TestSizeLimitedList
     [Test]
     public void Test_AddingElementsExceedingLimit_PopNewest()
     {
-        var list = new SizeLimitedList<int>(3, SizeLimitedCollectionFullAction.PopNewestItem);
+        SizeLimitedList<int> list = new(3, SizeLimitedCollectionFullAction.PopNewestItem);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -55,7 +52,7 @@ public class TestSizeLimitedList
     [Test]
     public void Test_AddingElementsExceedingLimit_PopNewest_WithReturn()
     {
-        var list = new SizeLimitedList<int>(3, SizeLimitedCollectionFullAction.PopNewestItem);
+        SizeLimitedList<int> list = new(3, SizeLimitedCollectionFullAction.PopNewestItem);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -71,7 +68,7 @@ public class TestSizeLimitedList
     [Test]
     public void Test_RemovingElements()
     {
-        var list = new SizeLimitedList<int>(5);
+        SizeLimitedList<int> list = new(5);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -85,7 +82,7 @@ public class TestSizeLimitedList
     [Test]
     public void Test_EmptyListBehavior()
     {
-        var list = new SizeLimitedList<int>(5);
+        SizeLimitedList<int> list = new(5);
 
         Assert.That(list.Count, Is.EqualTo(0));
         Assert.Throws<ArgumentOutOfRangeException>(() => _ = list[0]);
@@ -94,7 +91,7 @@ public class TestSizeLimitedList
     [Test]
     public void Test_NullValues()
     {
-        var list = new SizeLimitedList<string>(3);
+        SizeLimitedList<string> list = new(3);
         list.Add(null);
         list.Add("test");
 
@@ -113,7 +110,7 @@ public class TestSizeLimitedList
     [Test]
     public void Test_ClearList()
     {
-        var list = new SizeLimitedList<int>(5);
+        SizeLimitedList<int> list = new(5);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -126,7 +123,7 @@ public class TestSizeLimitedList
     [Test]
     public void Test_OverwritingOldestElement()
     {
-        var list = new SizeLimitedList<int>(3);
+        SizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);

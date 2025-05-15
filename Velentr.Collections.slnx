@@ -19,6 +19,20 @@
   <Folder Name="/.fna/">
     <Project Path="..\.fna\FNA\FNA.Core.csproj" Type="Classic C#" />
   </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs\BiDirectionalDictionary.md" />
+    <File Path="docs\SizeLimitedList.md" />
+    <File Path="docs\SizeLimitedDictionary.md" />
+    <File Path="docs\Pool.md" />
+    <File Path="docs\History.md" />
+    <File Path="docs\ConcurrentPriorityQueue.md" />
+    <File Path="docs\ConcurrentPool.md" />
+    <File Path="docs\ConcurrentSizeLimitedList.md" />
+    <File Path="docs\LockFreePriorityQueue.md" />
+    <File Path="docs\LockFreeList.md" />
+    <File Path="docs\LockFreeQueue.md" />
+    <File Path="docs\LockFreeStack.md" />
+  </Folder>
   <Folder Name="/SolutionFiles/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />

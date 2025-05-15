@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
-using System.Threading;
 
 namespace Velentr.Collections;
 
@@ -17,8 +16,8 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
     where TValue : notnull
 {
     [JsonIgnore] private readonly Dictionary<TKey, TValue> keyToValue;
-    [JsonIgnore] private readonly Dictionary<TValue, TKey> valueToKey;
     [JsonIgnore] private readonly ReaderWriterLockSlim lockSlim = new(LockRecursionPolicy.SupportsRecursion);
+    [JsonIgnore] private readonly Dictionary<TValue, TKey> valueToKey;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="BiDirectionalDictionary{TKey, TValue}" /> class.
@@ -28,7 +27,8 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="BiDirectionalDictionary{TKey, TValue}" /> class with the specified capacity.
+    ///     Initializes a new instance of the <see cref="BiDirectionalDictionary{TKey, TValue}" /> class with the specified
+    ///     capacity.
     /// </summary>
     /// <param name="capacity">The initial capacity of the dictionary.</param>
     public BiDirectionalDictionary(int capacity)
@@ -49,7 +49,7 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
         this.SyncRoot = new object();
         this.keyToValue = new Dictionary<TKey, TValue>(source.Count);
         this.valueToKey = new Dictionary<TValue, TKey>(source.Count);
-        
+
         // Perform the population without acquiring locks multiple times
         foreach (KeyValuePair<TKey, TValue> kvp in source)
         {
@@ -240,7 +240,7 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
     /// <summary>
     ///     Gets the number of key-value pairs in the dictionary.
     /// </summary>
-    public int Count 
+    public int Count
     {
         get
         {
@@ -264,7 +264,7 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
     /// <summary>
     ///     Gets the collection of keys in the dictionary.
     /// </summary>
-    public ICollection<TKey> Keys 
+    public ICollection<TKey> Keys
     {
         get
         {
@@ -283,7 +283,7 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
     /// <summary>
     ///     Gets the collection of values in the dictionary.
     /// </summary>
-    public ICollection<TValue> Values 
+    public ICollection<TValue> Values
     {
         get
         {
@@ -317,44 +317,6 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
 
             this.keyToValue[key] = value;
             this.valueToKey[value] = key;
-        }
-        finally
-        {
-            this.lockSlim.ExitWriteLock();
-        }
-    }
-
-    /// <summary>
-    ///     Adds a range of key-value pairs to the dictionary.
-    /// </summary>
-    /// <param name="pairs">The key-value pairs to add.</param>
-    /// <exception cref="ArgumentException">Thrown if any key or value already exists in the dictionary.</exception>
-    public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
-    {
-        if (pairs == null)
-            throw new ArgumentNullException(nameof(pairs));
-
-        // Make a single copy to check without locking
-        var pairsArray = pairs.ToArray();
-        
-        this.lockSlim.EnterWriteLock();
-        try
-        {
-            // Pre-check all items to avoid partial additions
-            foreach (var pair in pairsArray)
-            {
-                if (this.keyToValue.ContainsKey(pair.Key) || this.valueToKey.ContainsKey(pair.Value))
-                {
-                    throw new ArgumentException($"Collection contains duplicate key {pair.Key} or value {pair.Value}.");
-                }
-            }
-
-            // Now add all items
-            foreach (var pair in pairsArray)
-            {
-                this.keyToValue[pair.Key] = pair.Value;
-                this.valueToKey[pair.Value] = pair.Key;
-            }
         }
         finally
         {
@@ -478,8 +440,8 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
             try
             {
                 TValue? oldValue = default;
-                bool hasOldValue = false;
-                
+                var hasOldValue = false;
+
                 // Check if the key exists
                 if (this.keyToValue.TryGetValue(key, out oldValue))
                 {
@@ -488,8 +450,8 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
 
                 // Check if value already exists with a different key
                 TKey? existingKey = default;
-                bool valueExists = this.valueToKey.TryGetValue(value, out existingKey);
-                
+                var valueExists = this.valueToKey.TryGetValue(value, out existingKey);
+
                 // Only enter write lock if we're actually changing things
                 if (hasOldValue || valueExists)
                 {
@@ -501,12 +463,12 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
                         {
                             this.valueToKey.Remove(oldValue!);
                         }
-                        
+
                         if (valueExists && !EqualityComparer<TKey>.Default.Equals(existingKey!, key))
                         {
                             this.keyToValue.Remove(existingKey!);
                         }
-                        
+
                         // Add new mappings
                         this.keyToValue[key] = value;
                         this.valueToKey[value] = key;
@@ -612,6 +574,46 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
     }
 
     /// <summary>
+    ///     Adds a range of key-value pairs to the dictionary.
+    /// </summary>
+    /// <param name="pairs">The key-value pairs to add.</param>
+    /// <exception cref="ArgumentException">Thrown if any key or value already exists in the dictionary.</exception>
+    public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
+    {
+        if (pairs == null)
+        {
+            throw new ArgumentNullException(nameof(pairs));
+        }
+
+        // Make a single copy to check without locking
+        KeyValuePair<TKey, TValue>[] pairsArray = pairs.ToArray();
+
+        this.lockSlim.EnterWriteLock();
+        try
+        {
+            // Pre-check all items to avoid partial additions
+            foreach (KeyValuePair<TKey, TValue> pair in pairsArray)
+            {
+                if (this.keyToValue.ContainsKey(pair.Key) || this.valueToKey.ContainsKey(pair.Value))
+                {
+                    throw new ArgumentException($"Collection contains duplicate key {pair.Key} or value {pair.Value}.");
+                }
+            }
+
+            // Now add all items
+            foreach (KeyValuePair<TKey, TValue> pair in pairsArray)
+            {
+                this.keyToValue[pair.Key] = pair.Value;
+                this.valueToKey[pair.Value] = pair.Key;
+            }
+        }
+        finally
+        {
+            this.lockSlim.ExitWriteLock();
+        }
+    }
+
+    /// <summary>
     ///     Determines whether the dictionary contains the specified value.
     /// </summary>
     /// <param name="value">The value to locate.</param>
@@ -627,6 +629,14 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
         {
             this.lockSlim.ExitReadLock();
         }
+    }
+
+    /// <summary>
+    ///     Releases resources used by the BiDirectionalDictionary.
+    /// </summary>
+    public void Dispose()
+    {
+        this.lockSlim.Dispose();
     }
 
     /// <summary>
@@ -725,13 +735,5 @@ public class BiDirectionalDictionary<TKey, TValue> : IDictionary<TKey, TValue>, 
         {
             this.lockSlim.ExitReadLock();
         }
-    }
-    
-    /// <summary>
-    /// Releases resources used by the BiDirectionalDictionary.
-    /// </summary>
-    public void Dispose()
-    {
-        this.lockSlim.Dispose();
     }
 }

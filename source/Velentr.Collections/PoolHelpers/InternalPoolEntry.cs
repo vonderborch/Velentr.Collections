@@ -1,3 +1,5 @@
+using Velentr.Core.Threading;
+
 namespace Velentr.Collections.PoolHelpers;
 
 /// <summary>
@@ -7,31 +9,29 @@ namespace Velentr.Collections.PoolHelpers;
 internal class InternalPoolEntry<T>
 {
     /// <summary>
-    ///     Indicates whether the slot is free.
+    ///     Indicates whether the slot is claimed or free.
     /// </summary>
-    public bool IsSlotFree;
+    public Guard IsSlotClaimed;
 
     /// <summary>
     ///     The item stored in the pool entry.
     /// </summary>
-    public T Item;
+    public T? Item;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="InternalPoolEntry{T}" /> class with the slot marked as free.
     /// </summary>
-    public InternalPoolEntry()
+    public InternalPoolEntry() : this(default)
     {
-        this.IsSlotFree = true;
-        this.Item = default;
     }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="InternalPoolEntry{T}" /> class with the specified item.
     /// </summary>
     /// <param name="item">The item to store in the pool entry.</param>
-    public InternalPoolEntry(T item)
+    public InternalPoolEntry(T? item)
     {
-        this.IsSlotFree = false;
+        this.IsSlotClaimed = new Guard();
         this.Item = item;
     }
 
@@ -39,10 +39,17 @@ internal class InternalPoolEntry<T>
     ///     Claims the slot and assigns the specified item to it.
     /// </summary>
     /// <param name="item">The item to assign to the slot.</param>
-    public void ClaimSlot(T item)
+    /// <param name="checkSet">True to run the checkSet operation on the slot, False otherwise.</param>
+    /// <returns>True if the slot was claimed, False otherwise.</returns>
+    public bool ClaimSlot(T item, bool checkSet = true)
     {
+        if (checkSet && !this.IsSlotClaimed.CheckSet)
+        {
+            return false;
+        }
+
         this.Item = item;
-        this.IsSlotFree = false;
+        return true;
     }
 
     /// <summary>
@@ -50,6 +57,6 @@ internal class InternalPoolEntry<T>
     /// </summary>
     public void ClearSlot()
     {
-        this.IsSlotFree = true;
+        this.IsSlotClaimed.Reset();
     }
 }

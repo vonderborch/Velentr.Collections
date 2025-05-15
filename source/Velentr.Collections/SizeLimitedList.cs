@@ -13,10 +13,9 @@ namespace Velentr.Collections;
 [DebuggerDisplay("Count = {Count}, MaxSize = {MaxSize}")]
 public class SizeLimitedList<T> : IList<T>
 {
+    [JsonIgnore] private readonly ReaderWriterLockSlim _lock = new();
+    [JsonIgnore] private readonly object _syncLock = new();
     [JsonIgnore] private readonly List<T> internalList;
-    [JsonIgnore] private readonly object _syncLock = new object();
-    [JsonIgnore] private bool _isThreadSafe;
-    [JsonIgnore] private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="SizeLimitedList{T}" /> class with a specified maximum size and action
@@ -38,7 +37,7 @@ public class SizeLimitedList<T> : IList<T>
         this.internalList = new List<T>(maxSize);
         this.MaxSize = maxSize;
         this.ActionWhenFull = actionWhenFull;
-        this._isThreadSafe = isThreadSafe;
+        this.IsThreadSafe = isThreadSafe;
     }
 
     /// <summary>
@@ -68,7 +67,7 @@ public class SizeLimitedList<T> : IList<T>
         this.internalList = new List<T>(startingCapacity);
         this.MaxSize = maxSize;
         this.ActionWhenFull = actionWhenFull;
-        this._isThreadSafe = isThreadSafe;
+        this.IsThreadSafe = isThreadSafe;
     }
 
     /// <summary>
@@ -109,33 +108,27 @@ public class SizeLimitedList<T> : IList<T>
 
         this.ActionWhenFull = actionWhenFull;
         this.MaxSize = maxSize;
-        this._isThreadSafe = isThreadSafe;
+        this.IsThreadSafe = isThreadSafe;
     }
 
-    /// <summary>
-    ///     Gets the maximum size of the list.
-    /// </summary>
-    [JsonPropertyName("maxSize")]
-    [field: JsonIgnore]
-    public int MaxSize { get; private set; }
-
-    [JsonPropertyName("internalList")] 
-    public ImmutableList<T> UnderlyingList 
-    { 
+    [JsonPropertyName("internalList")]
+    public ImmutableList<T> UnderlyingList
+    {
         get
         {
-            if (_isThreadSafe)
+            if (this.IsThreadSafe)
             {
-                _lock.EnterReadLock();
+                this._lock.EnterReadLock();
                 try
                 {
                     return this.internalList.ToImmutableList();
                 }
                 finally
                 {
-                    _lock.ExitReadLock();
+                    this._lock.ExitReadLock();
                 }
             }
+
             return this.internalList.ToImmutableList();
         }
     }
@@ -147,24 +140,38 @@ public class SizeLimitedList<T> : IList<T>
     public SizeLimitedCollectionFullAction ActionWhenFull { get; set; }
 
     /// <summary>
+    ///     Gets or sets whether operations on this list are thread-safe.
+    /// </summary>
+    [field: JsonIgnore]
+    public bool IsThreadSafe { get; set; }
+
+    /// <summary>
+    ///     Gets the maximum size of the list.
+    /// </summary>
+    [JsonPropertyName("maxSize")]
+    [field: JsonIgnore]
+    public int MaxSize { get; private set; }
+
+    /// <summary>
     ///     Gets the number of elements contained in the list.
     /// </summary>
-    public int Count 
-    { 
+    public int Count
+    {
         get
         {
-            if (_isThreadSafe)
+            if (this.IsThreadSafe)
             {
-                _lock.EnterReadLock();
+                this._lock.EnterReadLock();
                 try
                 {
                     return this.internalList.Count;
                 }
                 finally
                 {
-                    _lock.ExitReadLock();
+                    this._lock.ExitReadLock();
                 }
             }
+
             return this.internalList.Count;
         }
     }
@@ -173,15 +180,6 @@ public class SizeLimitedList<T> : IList<T>
     ///     Gets a value indicating whether the list is read-only.
     /// </summary>
     public bool IsReadOnly => false;
-
-    /// <summary>
-    ///     Gets or sets whether operations on this list are thread-safe.
-    /// </summary>
-    public bool IsThreadSafe
-    {
-        get => _isThreadSafe;
-        set => _isThreadSafe = value;
-    }
 
     /// <summary>
     ///     Adds an item to the list. If the list is full, performs the specified action to handle the overflow.
@@ -198,16 +196,16 @@ public class SizeLimitedList<T> : IList<T>
     /// </summary>
     public void Clear()
     {
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            _lock.EnterWriteLock();
+            this._lock.EnterWriteLock();
             try
             {
                 this.internalList.Clear();
             }
             finally
             {
-                _lock.ExitWriteLock();
+                this._lock.ExitWriteLock();
             }
         }
         else
@@ -223,18 +221,19 @@ public class SizeLimitedList<T> : IList<T>
     /// <returns>True if the item is found; otherwise, false.</returns>
     public bool Contains(T item)
     {
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            _lock.EnterReadLock();
+            this._lock.EnterReadLock();
             try
             {
                 return this.internalList.Contains(item);
             }
             finally
             {
-                _lock.ExitReadLock();
+                this._lock.ExitReadLock();
             }
         }
+
         return this.internalList.Contains(item);
     }
 
@@ -245,16 +244,16 @@ public class SizeLimitedList<T> : IList<T>
     /// <param name="arrayIndex">The zero-based index in the array at which copying begins.</param>
     public void CopyTo(T[] array, int arrayIndex)
     {
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            _lock.EnterReadLock();
+            this._lock.EnterReadLock();
             try
             {
                 this.internalList.CopyTo(array, arrayIndex);
             }
             finally
             {
-                _lock.ExitReadLock();
+                this._lock.ExitReadLock();
             }
         }
         else
@@ -269,18 +268,19 @@ public class SizeLimitedList<T> : IList<T>
     public IEnumerator<T> GetEnumerator()
     {
         // Return a snapshot to avoid enumeration during modification exceptions
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            _lock.EnterReadLock();
+            this._lock.EnterReadLock();
             try
             {
                 return new List<T>(this.internalList).GetEnumerator();
             }
             finally
             {
-                _lock.ExitReadLock();
+                this._lock.ExitReadLock();
             }
         }
+
         return this.internalList.GetEnumerator();
     }
 
@@ -296,18 +296,19 @@ public class SizeLimitedList<T> : IList<T>
     /// <returns>The index of the item if found; otherwise, -1.</returns>
     public int IndexOf(T item)
     {
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            _lock.EnterReadLock();
+            this._lock.EnterReadLock();
             try
             {
                 return this.internalList.IndexOf(item);
             }
             finally
             {
-                _lock.ExitReadLock();
+                this._lock.ExitReadLock();
             }
         }
+
         return this.internalList.IndexOf(item);
     }
 
@@ -324,16 +325,16 @@ public class SizeLimitedList<T> : IList<T>
             throw new ArgumentOutOfRangeException(nameof(index), "Index cannot be greater than the max size.");
         }
 
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            _lock.EnterWriteLock();
+            this._lock.EnterWriteLock();
             try
             {
                 this.internalList.Insert(index, item);
             }
             finally
             {
-                _lock.ExitWriteLock();
+                this._lock.ExitWriteLock();
             }
         }
         else
@@ -350,38 +351,40 @@ public class SizeLimitedList<T> : IList<T>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the index is out of range.</exception>
     public T this[int index]
     {
-        get 
+        get
         {
-            if (_isThreadSafe)
+            if (this.IsThreadSafe)
             {
-                _lock.EnterReadLock();
+                this._lock.EnterReadLock();
                 try
                 {
                     return this.internalList[index];
                 }
                 finally
                 {
-                    _lock.ExitReadLock();
+                    this._lock.ExitReadLock();
                 }
             }
+
             return this.internalList[index];
         }
         set
         {
-            if (_isThreadSafe)
+            if (this.IsThreadSafe)
             {
-                _lock.EnterWriteLock();
+                this._lock.EnterWriteLock();
                 try
                 {
                     if (index < 0 || index >= this.internalList.Count)
                     {
                         throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
                     }
+
                     this.internalList[index] = value;
                 }
                 finally
                 {
-                    _lock.ExitWriteLock();
+                    this._lock.ExitWriteLock();
                 }
             }
             else
@@ -390,6 +393,7 @@ public class SizeLimitedList<T> : IList<T>
                 {
                     throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
                 }
+
                 this.internalList[index] = value;
             }
         }
@@ -402,18 +406,19 @@ public class SizeLimitedList<T> : IList<T>
     /// <returns>True if the item was successfully removed; otherwise, false.</returns>
     public bool Remove(T item)
     {
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            _lock.EnterWriteLock();
+            this._lock.EnterWriteLock();
             try
             {
                 return this.internalList.Remove(item);
             }
             finally
             {
-                _lock.ExitWriteLock();
+                this._lock.ExitWriteLock();
             }
         }
+
         return this.internalList.Remove(item);
     }
 
@@ -423,16 +428,16 @@ public class SizeLimitedList<T> : IList<T>
     /// <param name="index">The zero-based index of the item to remove.</param>
     public void RemoveAt(int index)
     {
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            _lock.EnterWriteLock();
+            this._lock.EnterWriteLock();
             try
             {
                 this.internalList.RemoveAt(index);
             }
             finally
             {
-                _lock.ExitWriteLock();
+                this._lock.ExitWriteLock();
             }
         }
         else
@@ -450,13 +455,14 @@ public class SizeLimitedList<T> : IList<T>
     /// <exception cref="InvalidOperationException">Thrown when the list is full and no valid action is defined.</exception>
     public T? AddAndReturn(T item)
     {
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            lock (_syncLock)
+            lock (this._syncLock)
             {
                 return AddAndReturnInternal(item);
             }
         }
+
         return AddAndReturnInternal(item);
     }
 
@@ -486,6 +492,23 @@ public class SizeLimitedList<T> : IList<T>
     }
 
     /// <summary>
+    ///     Returns a thread-safe snapshot of the list.
+    /// </summary>
+    /// <returns>An immutable copy of the current list state</returns>
+    public ImmutableList<T> AsImmutable()
+    {
+        if (this.IsThreadSafe)
+        {
+            lock (this._syncLock)
+            {
+                return this.internalList.ToImmutableList();
+            }
+        }
+
+        return this.internalList.ToImmutableList();
+    }
+
+    /// <summary>
     ///     Changes the maximum size of the list and removes excess elements if necessary.
     /// </summary>
     /// <param name="newMaxSize">The new maximum size of the list.</param>
@@ -493,13 +516,14 @@ public class SizeLimitedList<T> : IList<T>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when newMaxSize is less than 1.</exception>
     public List<T> ChangeMaxSize(int newMaxSize)
     {
-        if (_isThreadSafe)
+        if (this.IsThreadSafe)
         {
-            lock (_syncLock)
+            lock (this._syncLock)
             {
                 return ChangeMaxSizeInternal(newMaxSize);
             }
         }
+
         return ChangeMaxSizeInternal(newMaxSize);
     }
 
@@ -534,21 +558,4 @@ public class SizeLimitedList<T> : IList<T>
 
         return poppedItems;
     }
-    
-    /// <summary>
-    /// Returns a thread-safe snapshot of the list.
-    /// </summary>
-    /// <returns>An immutable copy of the current list state</returns>
-    public ImmutableList<T> AsImmutable()
-    {
-        if (_isThreadSafe)
-        {
-            lock (_syncLock)
-            {
-                return this.internalList.ToImmutableList();
-            }
-        }
-        return this.internalList.ToImmutableList();
-    }
 }
-

@@ -1,9 +1,5 @@
-using NUnit.Framework;
-using Velentr.Collections.Concurrent;
 using Velentr.Collections.CollectionFullActions;
-using Velentr.Collections.Events;
-using System.Threading;
-using System.Threading.Tasks;
+using Velentr.Collections.Concurrent;
 
 namespace Velentr.Collections.Test.Concurrent;
 
@@ -13,7 +9,7 @@ public class TestConcurrentPool
     [Test]
     public void TestInitialization()
     {
-        var pool = new ConcurrentPool<int>(10);
+        ConcurrentPool<int> pool = new(10);
         Assert.That(pool.MaxSize, Is.EqualTo(10));
         Assert.That(pool.Count, Is.EqualTo(0));
         Assert.That(pool.ActionWhenFull, Is.EqualTo(PoolFullAction.PopOldestItem));
@@ -22,7 +18,7 @@ public class TestConcurrentPool
     [Test]
     public void TestAddAndRetrieveItems()
     {
-        var pool = new ConcurrentPool<int>(5);
+        ConcurrentPool<int> pool = new(5);
         pool.Add(1);
         pool.Add(2);
         pool.Add(3);
@@ -36,7 +32,7 @@ public class TestConcurrentPool
     [Test]
     public void TestAddBeyondCapacity()
     {
-        var pool = new ConcurrentPool<int>(3);
+        ConcurrentPool<int> pool = new(3);
         pool.Add(1);
         pool.Add(2);
         pool.Add(3);
@@ -53,7 +49,7 @@ public class TestConcurrentPool
     [Test]
     public void TestClear()
     {
-        var pool = new ConcurrentPool<int>(5);
+        ConcurrentPool<int> pool = new(5);
         pool.Add(1);
         pool.Add(2);
         pool.Add(3);
@@ -68,9 +64,9 @@ public class TestConcurrentPool
     [Test]
     public void TestEvents()
     {
-        var pool = new ConcurrentPool<int>(2);
-        bool claimedEventTriggered = false;
-        bool releasedEventTriggered = false;
+        ConcurrentPool<int> pool = new(2);
+        var claimedEventTriggered = false;
+        var releasedEventTriggered = false;
 
         pool.ClaimedSlotEvent += (s, e) => { claimedEventTriggered = true; };
         pool.ReleasedSlotEvent += (s, e) => { releasedEventTriggered = true; };
@@ -89,9 +85,9 @@ public class TestConcurrentPool
     [Test]
     public void TestDispose()
     {
-        var pool = new ConcurrentPool<IDisposable>(2);
-        var disposable1 = new TestDisposable();
-        var disposable2 = new TestDisposable();
+        ConcurrentPool<IDisposable> pool = new(2);
+        TestDisposable disposable1 = new();
+        TestDisposable disposable2 = new();
 
         pool.Add(disposable1);
         pool.Add(disposable2);
@@ -105,13 +101,13 @@ public class TestConcurrentPool
     [Test]
     public void TestThreadSafety_AddItemsConcurrently()
     {
-        var pool = new ConcurrentPool<int>(100);
-        int numberOfThreads = 10;
-        int itemsPerThread = 10;
+        ConcurrentPool<int> pool = new(100);
+        var numberOfThreads = 10;
+        var itemsPerThread = 10;
 
         Parallel.For(0, numberOfThreads, threadId =>
         {
-            for (int i = 0; i < itemsPerThread; i++)
+            for (var i = 0; i < itemsPerThread; i++)
             {
                 pool.Add(threadId * itemsPerThread + i);
             }
@@ -123,12 +119,12 @@ public class TestConcurrentPool
     [Test]
     public void TestThreadSafety_AddAndRemoveConcurrently()
     {
-        var pool = new ConcurrentPool<int>(50);
-        int numberOfThreads = 10;
+        ConcurrentPool<int> pool = new(50);
+        var numberOfThreads = 10;
 
         Parallel.For(0, numberOfThreads, threadId =>
         {
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 pool.Add(threadId * 10 + i);
                 pool.Remove(threadId * 10 + i);
@@ -141,12 +137,12 @@ public class TestConcurrentPool
     [Test]
     public void TestThreadSafety_ClaimAndReleaseSlotsConcurrently()
     {
-        var pool = new ConcurrentPool<int>(10);
-        int numberOfThreads = 5;
+        ConcurrentPool<int> pool = new(10);
+        var numberOfThreads = 5;
 
         Parallel.For(0, numberOfThreads, threadId =>
         {
-            for (int i = 0; i < 2; i++)
+            for (var i = 0; i < 2; i++)
             {
                 pool.Add(threadId * 2 + i);
             }
@@ -154,7 +150,7 @@ public class TestConcurrentPool
 
         Parallel.For(0, numberOfThreads, threadId =>
         {
-            for (int i = 0; i < 2; i++)
+            for (var i = 0; i < 2; i++)
             {
                 pool.Remove(threadId * 2 + i);
             }
@@ -166,12 +162,12 @@ public class TestConcurrentPool
     [Test]
     public void TestThreadSafety_AddBeyondCapacityConcurrently()
     {
-        var pool = new ConcurrentPool<int>(10);
-        int numberOfThreads = 5;
+        ConcurrentPool<int> pool = new(10);
+        var numberOfThreads = 5;
 
         Parallel.For(0, numberOfThreads, threadId =>
         {
-            for (int i = 0; i < 5; i++)
+            for (var i = 0; i < 5; i++)
             {
                 pool.Add(threadId * 5 + i);
             }
@@ -186,7 +182,7 @@ public class TestConcurrentPool
 
         public void Dispose()
         {
-            IsDisposed = true;
+            this.IsDisposed = true;
         }
     }
 }

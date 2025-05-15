@@ -1,7 +1,4 @@
 using System.Collections.Immutable;
-using Velentr.Collections;
-using NUnit.Framework;
-using NUnit.Framework.Constraints;
 using Velentr.Collections.CollectionFullActions;
 
 namespace Velentr.Collections.Test;
@@ -9,21 +6,25 @@ namespace Velentr.Collections.Test;
 public class TestSizeLimitedOrderedDictionary
 {
     [Test]
-    public void Test_Add_Items_Under_Limit()
+    public void Test_Add_Items_Exceeding_Limit_PopNewest()
     {
-        var dictionary = new SizeLimitedOrderedDictionary<int, string>(3);
+        SizeLimitedOrderedDictionary<int, string> dictionary = new(3, SizeLimitedCollectionFullAction.PopNewestItem);
         dictionary.Add(1, "One");
         dictionary.Add(2, "Two");
+        dictionary.Add(3, "Three");
+        dictionary.Add(4, "Four");
 
-        Assert.That(dictionary.Count, Is.EqualTo(2));
+        Assert.That(dictionary.Count, Is.EqualTo(3));
+        Assert.That(dictionary.ContainsKey(3), Is.False);
         Assert.That(dictionary[0], Is.EqualTo("One"));
         Assert.That(dictionary[1], Is.EqualTo("Two"));
+        Assert.That(dictionary[2], Is.EqualTo("Four"));
     }
 
     [Test]
     public void Test_Add_Items_Exceeding_Limit_PopOldest()
     {
-        var dictionary = new SizeLimitedOrderedDictionary<int, string>(3, SizeLimitedCollectionFullAction.PopOldestItem);
+        SizeLimitedOrderedDictionary<int, string> dictionary = new(3);
         dictionary.Add(1, "One");
         dictionary.Add(2, "Two");
         dictionary.Add(3, "Three");
@@ -39,7 +40,7 @@ public class TestSizeLimitedOrderedDictionary
     [Test]
     public void Test_Add_Items_Exceeding_Limit_PopOldestAndReturn()
     {
-        var dictionary = new SizeLimitedOrderedDictionary<int, string>(3, SizeLimitedCollectionFullAction.PopOldestItem);
+        SizeLimitedOrderedDictionary<int, string> dictionary = new(3);
         dictionary.Add(1, "One");
         dictionary.Add(2, "Two");
         dictionary.Add(3, "Three");
@@ -54,25 +55,44 @@ public class TestSizeLimitedOrderedDictionary
     }
 
     [Test]
-    public void Test_Add_Items_Exceeding_Limit_PopNewest()
+    public void Test_Add_Items_Under_Limit()
     {
-        var dictionary = new SizeLimitedOrderedDictionary<int, string>(3, SizeLimitedCollectionFullAction.PopNewestItem);
+        SizeLimitedOrderedDictionary<int, string> dictionary = new(3);
         dictionary.Add(1, "One");
         dictionary.Add(2, "Two");
-        dictionary.Add(3, "Three");
-        dictionary.Add(4, "Four");
 
-        Assert.That(dictionary.Count, Is.EqualTo(3));
-        Assert.That(dictionary.ContainsKey(3), Is.False);
+        Assert.That(dictionary.Count, Is.EqualTo(2));
         Assert.That(dictionary[0], Is.EqualTo("One"));
         Assert.That(dictionary[1], Is.EqualTo("Two"));
-        Assert.That(dictionary[2], Is.EqualTo("Four"));
+    }
+
+    [Test]
+    public void Test_ImmutableDictionary_Constructor()
+    {
+        ImmutableSortedDictionary<int, string> source = ImmutableSortedDictionary<int, string>.Empty.Add(1, "One")
+            .Add(2, "Two");
+        SizeLimitedOrderedDictionary<int, string> dictionary = new(source, 3);
+
+        Assert.That(dictionary.Count, Is.EqualTo(2));
+        Assert.That(dictionary[0], Is.EqualTo("One"));
+        Assert.That(dictionary[1], Is.EqualTo("Two"));
+    }
+
+    [Test]
+    public void Test_Overflow_Exception()
+    {
+        SizeLimitedOrderedDictionary<int, string> dictionary = new(2, (SizeLimitedCollectionFullAction)999);
+
+        dictionary.Add(1, "One");
+        dictionary.Add(2, "Two");
+
+        Assert.That(() => dictionary.Add(3, "Three"), Throws.TypeOf<InvalidOperationException>());
     }
 
     [Test]
     public void Test_Remove_Item()
     {
-        var dictionary = new SizeLimitedOrderedDictionary<int, string>(3);
+        SizeLimitedOrderedDictionary<int, string> dictionary = new(3);
         dictionary.Add(1, "One");
         dictionary.Add(2, "Two");
 
@@ -86,34 +106,12 @@ public class TestSizeLimitedOrderedDictionary
     [Test]
     public void Test_TryGetValue()
     {
-        var dictionary = new SizeLimitedOrderedDictionary<int, string>(3);
+        SizeLimitedOrderedDictionary<int, string> dictionary = new(3);
         dictionary.Add(1, "One");
 
         var result = dictionary.TryGetValue(1, out var value);
 
         Assert.That(result, Is.True);
         Assert.That(value, Is.EqualTo("One"));
-    }
-
-    [Test]
-    public void Test_ImmutableDictionary_Constructor()
-    {
-        var source = ImmutableSortedDictionary<int, string>.Empty.Add(1, "One").Add(2, "Two");
-        var dictionary = new SizeLimitedOrderedDictionary<int, string>(source, 3);
-
-        Assert.That(dictionary.Count, Is.EqualTo(2));
-        Assert.That(dictionary[0], Is.EqualTo("One"));
-        Assert.That(dictionary[1], Is.EqualTo("Two"));
-    }
-
-    [Test]
-    public void Test_Overflow_Exception()
-    {
-        var dictionary = new SizeLimitedOrderedDictionary<int, string>(2, (SizeLimitedCollectionFullAction)999);
-
-        dictionary.Add(1, "One");
-        dictionary.Add(2, "Two");
-
-        Assert.That(() => dictionary.Add(3, "Three"), Throws.TypeOf<InvalidOperationException>());
     }
 }

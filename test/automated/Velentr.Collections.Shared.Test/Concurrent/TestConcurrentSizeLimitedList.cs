@@ -1,10 +1,8 @@
-using System.Collections.Immutable;
-using NUnit.Framework;
-using Velentr.Collections.Concurrent;
-using Velentr.Collections.CollectionFullActions;
-using Assert = NUnit.Framework.Assert;
 using System.Collections.Concurrent;
-using System.Threading;
+using System.Collections.Immutable;
+using Velentr.Collections.CollectionFullActions;
+using Velentr.Collections.Concurrent;
+using Assert = NUnit.Framework.Assert;
 
 namespace Velentr.Collections.Test.Concurrent;
 
@@ -13,7 +11,7 @@ public class TestConcurrentSizeLimitedList
     [Test]
     public void Test_Add_Item()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -27,7 +25,7 @@ public class TestConcurrentSizeLimitedList
     [Test]
     public void Test_Add_Item_Exceeding_MaxSize()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3, SizeLimitedCollectionFullAction.PopOldestItem);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -42,7 +40,7 @@ public class TestConcurrentSizeLimitedList
     [Test]
     public void Test_AddAndReturn_Item()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3, SizeLimitedCollectionFullAction.PopOldestItem);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -56,26 +54,9 @@ public class TestConcurrentSizeLimitedList
     }
 
     [Test]
-    public void Test_ChangeMaxSize()
-    {
-        var list = new ConcurrentSizeLimitedList<int>(3, SizeLimitedCollectionFullAction.PopNewestItem);
-        list.Add(1);
-        list.Add(2);
-        list.Add(3);
-
-        var removedItems = list.ChangeMaxSize(2);
-
-        Assert.That(list.Count, Is.EqualTo(2));
-        Assert.That(list[0], Is.EqualTo(1));
-        Assert.That(list[1], Is.EqualTo(2));
-        Assert.That(removedItems.Count, Is.EqualTo(1));
-        Assert.That(removedItems[0], Is.EqualTo(3));
-    }
-
-    [Test]
     public void Test_AsImmutable()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -89,9 +70,26 @@ public class TestConcurrentSizeLimitedList
     }
 
     [Test]
+    public void Test_ChangeMaxSize()
+    {
+        ConcurrentSizeLimitedList<int> list = new(3, SizeLimitedCollectionFullAction.PopNewestItem);
+        list.Add(1);
+        list.Add(2);
+        list.Add(3);
+
+        List<int> removedItems = list.ChangeMaxSize(2);
+
+        Assert.That(list.Count, Is.EqualTo(2));
+        Assert.That(list[0], Is.EqualTo(1));
+        Assert.That(list[1], Is.EqualTo(2));
+        Assert.That(removedItems.Count, Is.EqualTo(1));
+        Assert.That(removedItems[0], Is.EqualTo(3));
+    }
+
+    [Test]
     public void Test_Clear()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -104,7 +102,7 @@ public class TestConcurrentSizeLimitedList
     [Test]
     public void Test_Contains()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -116,7 +114,7 @@ public class TestConcurrentSizeLimitedList
     [Test]
     public void Test_IndexOf()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -128,7 +126,7 @@ public class TestConcurrentSizeLimitedList
     [Test]
     public void Test_Insert()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(3);
 
@@ -143,7 +141,7 @@ public class TestConcurrentSizeLimitedList
     [Test]
     public void Test_Remove()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -159,7 +157,7 @@ public class TestConcurrentSizeLimitedList
     [Test]
     public void Test_RemoveAt()
     {
-        var list = new ConcurrentSizeLimitedList<int>(3);
+        ConcurrentSizeLimitedList<int> list = new(3);
         list.Add(1);
         list.Add(2);
         list.Add(3);
@@ -175,23 +173,23 @@ public class TestConcurrentSizeLimitedList
     public void Test_ThreadSafety()
     {
         // Create a concurrent size-limited list with larger capacity to observe thread interactions
-        var list = new ConcurrentSizeLimitedList<int>(1000);
-            
+        ConcurrentSizeLimitedList<int> list = new(1000);
+
         // Number of threads to use for testing
-        int threadCount = 10;
-        int itemsPerThread = 200;
-            
+        var threadCount = 10;
+        var itemsPerThread = 200;
+
         // Use a CountdownEvent to ensure all threads start at approximately the same time
-        using var startSignal = new CountdownEvent(threadCount);
-        using var completedSignal = new CountdownEvent(threadCount);
-            
+        using CountdownEvent startSignal = new(threadCount);
+        using CountdownEvent completedSignal = new(threadCount);
+
         // Track exceptions across threads
-        var exceptions = new ConcurrentQueue<Exception>();
-            
+        ConcurrentQueue<Exception> exceptions = new();
+
         // Create and start threads
-        for (int threadId = 0; threadId < threadCount; threadId++)
+        for (var threadId = 0; threadId < threadCount; threadId++)
         {
-            int id = threadId; // Capture for lambda
+            var id = threadId; // Capture for lambda
             new Thread(() =>
             {
                 try
@@ -199,9 +197,9 @@ public class TestConcurrentSizeLimitedList
                     // Signal thread is ready and wait for all threads to be ready
                     startSignal.Signal();
                     startSignal.Wait();
-                        
+
                     // Add items to the list - each thread adds a range of unique numbers
-                    for (int i = 0; i < itemsPerThread; i++)
+                    for (var i = 0; i < itemsPerThread; i++)
                     {
                         list.Add(id * itemsPerThread + i);
                     }
@@ -216,24 +214,24 @@ public class TestConcurrentSizeLimitedList
                 }
             }).Start();
         }
-            
+
         // Wait for all threads to complete
         completedSignal.Wait();
-            
+
         // Check if any exceptions were thrown
         Assert.That(exceptions, Is.Empty, "Exceptions were thrown during concurrent operations");
-            
+
         // Verify list count is correct - should contain all added items up to the max size
-        int expectedCount = Math.Min(threadCount * itemsPerThread, list.MaxSize);
+        var expectedCount = Math.Min(threadCount * itemsPerThread, list.MaxSize);
         Assert.That(list.Count, Is.EqualTo(expectedCount));
-            
+
         // Get an immutable copy to inspect the list contents
-        var immutableList = list.AsImmutable();
-            
+        ImmutableList<int> immutableList = list.AsImmutable();
+
         // Ensure no duplicates exist in the list
         var distinctCount = immutableList.Distinct().Count();
         Assert.That(distinctCount, Is.EqualTo(immutableList.Count), "List contains duplicate items");
-            
+
         // Additional verification that all items are in the valid range
         foreach (var item in immutableList)
         {

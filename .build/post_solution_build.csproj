@@ -18,7 +18,7 @@
     </PropertyGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="PowerShell Remove-Item -Path '$(ProjectDir)release' -Recurse -Force" Condition="'$(ConfigurationName)' == 'Release' and '$(OS)' == 'Windows_NT'"/>
-        <Exec Command="pwsh -Command Remove-Item -Path '$(ProjectDir)release' -Recurse -Force" Condition="'$(ConfigurationName)' == 'Release' and '$(OS)' != 'Windows_NT'"/>
+        <Exec Command="PowerShell -NoProfile -ExecutionPolicy Bypass -File &quot;$(SolutionDir).build\post_build.ps1&quot; -ProjectDir $(ProjectDir) -SolutionDir $(SolutionDir)" Condition="'$(ConfigurationName)' == 'Release' and '$(OS)' == 'Windows_NT'"/>
+        <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(SolutionDir).build/post_build.ps1&quot; -ProjectDir $(ProjectDir) -SolutionDir $(SolutionDir)" Condition="'$(ConfigurationName)' == 'Release' and '$(OS)' != 'Windows_NT'"/>
     </Target>
 </Project>
