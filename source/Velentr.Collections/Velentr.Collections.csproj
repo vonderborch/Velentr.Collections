@@ -3,7 +3,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>3.0.0.0</Version>
+        <Version>3.0.0.1</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>Velentr.Collections</Title>
         <Authors>Christian Webber</Authors>
@@ -15,8 +15,8 @@
         <PackageIcon>logo.png</PackageIcon>
         <RepositoryUrl>https://github.com/vonderborch/Velentr.Collections</RepositoryUrl>
         <PackageTags>Velentr, Collections, Thread-Safe</PackageTags>
-        <AssemblyVersion>3.0.0.0</AssemblyVersion>
-        <FileVersion>3.0.0.0</FileVersion>
+        <AssemblyVersion>3.0.0.1</AssemblyVersion>
+        <FileVersion>3.0.0.1</FileVersion>
         <Company>Christian Webber</Company>
     </PropertyGroup>
 
