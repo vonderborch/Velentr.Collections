@@ -1,221 +1,267 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+using System.Collections;
 using System.Diagnostics;
-
-using Velentr.Collections.Exceptions;
+using System.Text.Json.Serialization;
 using Velentr.Collections.Internal;
-using Velentr.Core.Helpers.Threading;
 
-namespace Velentr.Collections.LockFree
+namespace Velentr.Collections.LockFree;
+
+/// <summary>
+///     A lock-free implementation of a stack data structure.
+///     This implementation is thread-safe without using locks, providing better scalability in multi-threaded scenarios.
+/// </summary>
+/// <typeparam name="T">The type of elements in the stack</typeparam>
+[DebuggerDisplay("Count = {Count}")]
+public class LockFreeStack<T> : ICollection, IEnumerable<T>
 {
+    [JsonIgnore] private int count;
+
+    [JsonIgnore] private readonly Node<T> head;
+
+    [JsonIgnore] private long version;
+
     /// <summary>
-    ///     Defines a Lock-Free Stack Collection (FILO).
+    ///     Initializes a new instance of the <see cref="LockFreeStack{T}" /> class.
     /// </summary>
-    /// <typeparam name="T">The type associated with the Stack instance</typeparam>
-    /// <seealso cref="Collections.Net.Collections.Collection" />
-    /// <seealso cref="IEnumerable{T}" />
-    /// <seealso cref="IEnumerable" />
-    [DebuggerDisplay("Count = {Count}")]
-    public class LockFreeStack<T> : Collection, IEnumerable<T>, IEnumerable
+    public LockFreeStack()
     {
-        /// <summary>
-        ///     The head
-        /// </summary>
-        private Node<T> _head;
+        this.version = 0;
+        this.count = 0;
+        this.head = new Node<T>();
+    }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LockFreeStack{T}" /> class.
-        /// </summary>
-        public LockFreeStack()
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="LockFreeStack{T}" /> class with an initial value.
+    /// </summary>
+    /// <param name="value">The value to add to the stack.</param>
+    public LockFreeStack(T value)
+    {
+        this.version = 0;
+        this.count = 0;
+        this.head = new Node<T>();
+        Push(value);
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="LockFreeStack{T}" /> class with an initial value.
+    /// </summary>
+    /// <param name="collection">The values to add to the stack.</param>
+    [JsonConstructor]
+    public LockFreeStack(IEnumerable<T> collection)
+    {
+        this.version = 0;
+        this.count = 0;
+        this.head = new Node<T>();
+        foreach (T item in collection)
         {
-            this._count = 0;
-            this._head = new Node<T>();
+            Push(item);
         }
+    }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LockFreeStack{T}" /> class.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public LockFreeStack(T value)
+    /// <summary>
+    ///     Transforms the stack into a list.
+    /// </summary>
+    [JsonPropertyName("collection")]
+    public List<T> ToList
+    {
+        get
         {
-            this._count = 0;
-            this._head = new Node<T>();
-            Push(value);
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        ///     An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Clears the collection.
-        /// </summary>
-        public override void Clear()
-        {
-            this._version = 0;
-            var oldHead = this._head;
-            this._head = new Node<T>();
-
-            var nodes = 0;
-            while (oldHead != null)
+            var startingVersion = this.version;
+            List<T> list = new();
+            foreach (T item in this)
             {
-                nodes++;
-                var nextHead = oldHead.Next;
-                oldHead.Dispose();
-
-                oldHead = nextHead;
+                CollectionValidators.ValidateCollectionState(startingVersion, this.version);
+                list.Add(item);
             }
 
-            UpdateCount(-nodes);
+            return list;
+        }
+    }
+
+    /// <summary>
+    ///     Gets the number of elements contained in the stack.
+    /// </summary>
+    public int Count => this.count;
+
+    /// <summary>
+    ///     Gets a value indicating whether access to the stack is synchronized (thread safe).
+    ///     Always returns true for LockFreeStack as it's thread-safe by design.
+    /// </summary>
+    public bool IsSynchronized => true;
+
+    /// <summary>
+    ///     Gets an object that can be used to synchronize access to the stack.
+    ///     Note: This property exists for ICollection compatibility but lock-free collections
+    ///     don't require external synchronization.
+    /// </summary>
+    [field: JsonIgnore]
+    public object SyncRoot { get; } = new();
+
+    /// <summary>
+    ///     Copies the elements of the stack to an array, starting at a particular index.
+    /// </summary>
+    /// <param name="array">The one-dimensional array that is the destination of the elements.</param>
+    /// <param name="index">The zero-based index in array at which copying begins.</param>
+    /// <exception cref="ArgumentNullException">Thrown if array is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if index is less than zero.</exception>
+    /// <exception cref="ArgumentException">
+    ///     Thrown if array is multidimensional or if the number of elements in the source
+    ///     exceeds available space.
+    /// </exception>
+    public void CopyTo(Array array, int index)
+    {
+        if (array == null)
+        {
+            throw new ArgumentNullException(nameof(array));
         }
 
-        /// <summary>
-        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public override void Dispose()
+        if (index < 0)
         {
-            this._disposed = true;
-            Clear();
-            this._head.Dispose();
+            throw new ArgumentOutOfRangeException(nameof(index), "Index must be non-negative");
         }
 
-        /// <summary>
-        ///     Peeks at the value at the top of the Stack.
-        /// </summary>
-        /// <returns>The next value.</returns>
-        public T Peek()
+        if (array.Rank > 1)
         {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            return this._head.Next.Value;
+            throw new ArgumentException("Multidimensional arrays are not supported", nameof(array));
         }
 
-        /// <summary>
-        ///     Pops the next value from the Stack.
-        /// </summary>
-        /// <returns>The popped value.</returns>
-        public T Pop()
+        if (array.Length - index < this.count)
         {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            Pop(out var value);
-
-            return value;
+            throw new ArgumentException("Not enough space in array from index to end of destination array");
         }
 
-        /// <summary>
-        ///     Pops the next value from the Stack.
-        /// </summary>
-        /// <param name="value">The popped value.</param>
-        /// <returns>Whether the Pop was successful or not.</returns>
-        public bool Pop(out T value)
+        var i = index;
+        foreach (T item in this)
         {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
+            array.SetValue(item, i++);
+        }
+    }
 
-            Node<T> node;
+    /// <summary>
+    ///     Returns an enumerator that iterates through the stack.
+    /// </summary>
+    /// <returns>An enumerator for the stack.</returns>
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
-            do
+    /// <summary>
+    ///     Returns an enumerator that iterates through the stack.
+    /// </summary>
+    /// <returns>An enumerator for the stack.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the stack is modified during enumeration.</exception>
+    public IEnumerator<T> GetEnumerator()
+    {
+        var startingVersion = this.version;
+        Node<T>? current = this.head.Next;
+
+        while (current != null)
+        {
+            CollectionValidators.ValidateCollectionState(startingVersion, this.version);
+            yield return current.Value;
+            current = current.Next;
+        }
+    }
+
+    /// <summary>
+    ///     Clears all elements from the stack.
+    /// </summary>
+    public void Clear()
+    {
+        this.head.Next = null;
+        Interlocked.Increment(ref this.version);
+        Interlocked.Exchange(ref this.count, 0);
+    }
+
+    /// <summary>
+    ///     Determines whether the stack contains a specific value.
+    /// </summary>
+    /// <param name="item">The object to locate in the stack.</param>
+    /// <returns>true if item is found in the stack; otherwise, false.</returns>
+    public bool Contains(T item)
+    {
+        EqualityComparer<T> comparer = EqualityComparer<T>.Default;
+        Node<T> current = this.head.Next;
+
+        while (current != null)
+        {
+            if (item == null)
             {
-                node = this._head.Next;
-                if (node == null)
+                if (current.Value == null)
                 {
-                    value = default;
-
-                    return false;
+                    return true;
                 }
-            } while (!AtomicOperations.CAS(ref this._head.Next, node.Next, node));
-
-            value = node.Value;
-            DecrementCount();
-
-            return true;
-        }
-
-        /// <summary>
-        ///     Pushes the specified value onto the Stack.
-        /// </summary>
-        /// <param name="value">The value to push.</param>
-        public void Push(T value)
-        {
-            if (this._disposed)
+            }
+            else if (current.Value != null && comparer.Equals(current.Value, item))
             {
-                throw new CollectionDisposedException();
+                return true;
             }
 
-            var newNode = new Node<T>(value);
-
-            do
-            {
-                newNode.Next = this._head.Next;
-            } while (!AtomicOperations.CAS(ref this._head.Next, newNode, newNode.Next));
-
-            IncrementCount();
+            current = current.Next;
         }
 
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        private IEnumerator<T> GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
+        return false;
+    }
 
-        /// <summary>
-        ///     Internals the get enumerator.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="Collections.Net.Exceptions.CollectionDisposedException"></exception>
-        /// <exception cref="Collections.Net.Exceptions.CollectionModifiedException"></exception>
-        private IEnumerator<T> InternalGetEnumerator()
+    /// <summary>
+    ///     Gets the element at the top of the stack without removing it.
+    /// </summary>
+    /// <returns>The element at the top of the stack, or default value if the stack is empty.</returns>
+    public T? Peek()
+    {
+        return this.head.Next == null ? default : this.head.Next.Value;
+    }
+
+    /// <summary>
+    ///     Removes and returns the element at the top of the stack.
+    /// </summary>
+    /// <returns>The element at the top of the stack, or default value if the stack is empty.</returns>
+    public T? Pop()
+    {
+        Pop(out T? value);
+        return value;
+    }
+
+    /// <summary>
+    ///     Tries to remove and return the element at the top of the stack.
+    /// </summary>
+    /// <param name="value">
+    ///     When this method returns, contains the element at the top of the stack, or the default value if the
+    ///     stack is empty.
+    /// </param>
+    /// <returns>true if an element was removed; otherwise, false.</returns>
+    public bool Pop(out T value)
+    {
+        Node<T>? node;
+        do
         {
-            if (this._disposed)
+            node = this.head.Next;
+            if (node == null)
             {
-                throw new CollectionDisposedException();
+                value = default;
+                return false;
             }
+        } while (!Helpers.CompareAndSwap(ref this.head.Next, node.Next, this.head.Next));
 
-            var enumeratorVersion = this._version;
-            var head = this._head;
+        value = node.Value;
+        Interlocked.Increment(ref this.version);
+        Helpers.Decrement(ref this.count, 0);
+        return true;
+    }
 
-            do
-            {
-                if (enumeratorVersion != this._version)
-                {
-                    throw new CollectionModifiedException();
-                }
+    /// <summary>
+    ///     Inserts an element at the top of the stack.
+    /// </summary>
+    /// <param name="value">The element to push onto the stack.</param>
+    public void Push(T value)
+    {
+        Node<T> newNode = new(value);
+        do
+        {
+            newNode.Next = this.head.Next;
+        } while (!Helpers.CompareAndSwap(ref this.head.Next, newNode, this.head.Next));
 
-                yield return head.Value;
-                head = head.Next;
-            } while (head != null);
-        }
+        Interlocked.Increment(ref this.version);
+        Interlocked.Increment(ref this.count);
     }
 }

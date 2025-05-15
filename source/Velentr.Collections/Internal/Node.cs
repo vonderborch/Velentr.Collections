@@ -1,85 +1,48 @@
-﻿using System;
+namespace Velentr.Collections.Internal;
 
-using Velentr.Core.Helpers.General;
-
-namespace Velentr.Collections.Internal
+/// <summary>
+///     Represents a node in a linked structure that can contain a value of type <typeparamref name="T" />.
+/// </summary>
+/// <typeparam name="T">The type of value stored in the node.</typeparam>
+public class Node<T> : IDisposable
 {
     /// <summary>
-    ///     A singly-linked node
+    ///     Gets or sets the reference to the next node in the linked structure.
     /// </summary>
-    /// <typeparam name="T">The type of the value for the node</typeparam>
-    internal class Node<T> : IDisposable
+    public volatile Node<T>? Next;
+
+    /// <summary>
+    ///     Gets or sets the value stored in this node.
+    /// </summary>
+    public T Value;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="Node{T}" /> class with the specified value.
+    /// </summary>
+    public Node()
     {
-        /// <summary>
-        ///     Whether the object has been disposed
-        /// </summary>
-        private bool _disposed;
+        this.Next = null;
+        this.Value = default!;
+    }
 
-        /// <summary>
-        ///     The next node
-        /// </summary>
-        public Node<T> Next;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="Node{T}" /> class with the specified value.
+    /// </summary>
+    /// <param name="value">The value to store in the node.</param>
+    public Node(T value)
+    {
+        this.Next = null;
+        this.Value = value;
+    }
 
-        /// <summary>
-        ///     The value
-        /// </summary>
-        public T Value;
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="Node{T}" /> class.
-        /// </summary>
-        public Node()
-            : this(default) { }
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="Node{T}" /> class.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public Node(T value)
+    /// <summary>
+    ///     Disposes the current node by disposing its value if it implements <see cref="IDisposable" />.
+    /// </summary>
+    public void Dispose()
+    {
+        if (this.Value is IDisposable disposable)
         {
-            this.Next = null;
-            this.Value = value;
-        }
-
-        /// <summary>
-        ///     Gets a value indicating whether this <see cref="Node{T}" /> is disposed.
-        /// </summary>
-        /// <value>
-        ///     <c>true</c> if disposed; otherwise, <c>false</c>.
-        /// </value>
-        public bool Disposed => this._disposed;
-
-        /// <summary>
-        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-
-            // Use SupressFinalize in case a subclass
-            // of this type implements a finalizer.
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        ///     Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing">
-        ///     <c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only
-        ///     unmanaged resources.
-        /// </param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!this._disposed)
-            {
-                if (disposing)
-                {
-                    DisposingHelpers.DisposeIfPossible(this.Value);
-                }
-
-                // Indicate that the instance has been disposed.
-                this._disposed = true;
-            }
+            disposable.Dispose();
         }
     }
 }

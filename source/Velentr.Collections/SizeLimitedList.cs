@@ -1,380 +1,561 @@
-﻿using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Text.Json.Serialization;
+using Velentr.Collections.CollectionFullActions;
 
-using Velentr.Collections.CollectionActions;
-using Velentr.Collections.Exceptions;
+namespace Velentr.Collections;
 
-namespace Velentr.Collections
+/// <summary>
+///     A list with a maximum size limit. When the limit is reached, it performs a specified action to handle the overflow.
+/// </summary>
+/// <typeparam name="T">The type of elements in the list.</typeparam>
+[DebuggerDisplay("Count = {Count}, MaxSize = {MaxSize}")]
+public class SizeLimitedList<T> : IList<T>
 {
+    [JsonIgnore] private readonly ReaderWriterLockSlim _lock = new();
+    [JsonIgnore] private readonly object _syncLock = new();
+    [JsonIgnore] private readonly List<T> internalList;
+
     /// <summary>
-    ///     A list that is limited in maximum size.
+    ///     Initializes a new instance of the <see cref="SizeLimitedList{T}" /> class with a specified maximum size and action
+    ///     when full.
     /// </summary>
-    /// <typeparam name="T"> Generic type parameter. </typeparam>
-    /// <seealso cref="Collection" />
-    /// <seealso cref="IEnumerable{T}" />
-    /// <seealso cref="IEnumerable" />
-    [DebuggerDisplay("Count = {Count}, MaxSize = {MaxSize}")]
-    public class SizeLimitedList<T> : Collection, IEnumerable<T>, IEnumerable
+    /// <param name="maxSize">The maximum size of the list.</param>
+    /// <param name="actionWhenFull">The action to perform when the list exceeds its maximum size.</param>
+    /// <param name="isThreadSafe">If true, all operations will be synchronized for thread safety.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when maxSize is less than 1.</exception>
+    public SizeLimitedList(int maxSize,
+        SizeLimitedCollectionFullAction actionWhenFull = SizeLimitedCollectionFullAction.PopOldestItem,
+        bool isThreadSafe = false)
     {
-        /// <summary>
-        ///     The list.
-        /// </summary>
-        private readonly List<T> _list;
-
-        /// <summary>
-        ///     Constructor.
-        /// </summary>
-        /// <param name="maxSize">        (Optional) The maximum size of the. </param>
-        /// <param name="actionWhenFull"> (Optional) The action when full. </param>
-        public SizeLimitedList(long maxSize = 32, SizeLimitedFullAction actionWhenFull = SizeLimitedFullAction.PopOldestItem)
+        if (maxSize < 1)
         {
-            if (maxSize < 2)
+            throw new ArgumentOutOfRangeException(nameof(maxSize), "Max size must be greater than or equal to 1.");
+        }
+
+        this.internalList = new List<T>(maxSize);
+        this.MaxSize = maxSize;
+        this.ActionWhenFull = actionWhenFull;
+        this.IsThreadSafe = isThreadSafe;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="SizeLimitedList{T}" /> class with a specified starting capacity,
+    ///     maximum size, and action when full.
+    /// </summary>
+    /// <param name="startingCapacity">The initial capacity of the list.</param>
+    /// <param name="maxSize">The maximum size of the list.</param>
+    /// <param name="actionWhenFull">The action to perform when the list exceeds its maximum size.</param>
+    /// <param name="isThreadSafe">If true, all operations will be synchronized for thread safety.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when maxSize or startingCapacity is less than 1.</exception>
+    public SizeLimitedList(int startingCapacity, int maxSize,
+        SizeLimitedCollectionFullAction actionWhenFull = SizeLimitedCollectionFullAction.PopOldestItem,
+        bool isThreadSafe = false)
+    {
+        if (maxSize < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxSize), "Max size must be greater than or equal to 1.");
+        }
+
+        if (startingCapacity < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startingCapacity),
+                "Starting capacity must be greater than or equal to 1.");
+        }
+
+        this.internalList = new List<T>(startingCapacity);
+        this.MaxSize = maxSize;
+        this.ActionWhenFull = actionWhenFull;
+        this.IsThreadSafe = isThreadSafe;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="SizeLimitedList{T}" /> class with an existing list, maximum size, and
+    ///     action when full.
+    /// </summary>
+    /// <param name="baseList">The existing list to initialize with.</param>
+    /// <param name="maxSize">The maximum size of the list.</param>
+    /// <param name="actionWhenFull">The action to perform when the list exceeds its maximum size.</param>
+    /// <param name="isThreadSafe">If true, all operations will be synchronized for thread safety.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when maxSize is less than 0 or internalList exceeds maxSize.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when internalList is null.</exception>
+    [JsonConstructor]
+    public SizeLimitedList(IList<T> baseList, int maxSize,
+        SizeLimitedCollectionFullAction actionWhenFull = SizeLimitedCollectionFullAction.PopOldestItem,
+        bool isThreadSafe = false)
+    {
+        if (maxSize < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxSize), "New max size must be greater than or equal to 0.");
+        }
+
+        if (baseList == null)
+        {
+            throw new ArgumentNullException(nameof(baseList), "Base list cannot be null.");
+        }
+
+        if (baseList.Count > maxSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(baseList), "Base list cannot be larger than the max size.");
+        }
+
+        this.internalList = new List<T>(maxSize);
+        for (var i = 0; i < baseList.Count; i++)
+        {
+            this.internalList.Add(baseList[i]);
+        }
+
+        this.ActionWhenFull = actionWhenFull;
+        this.MaxSize = maxSize;
+        this.IsThreadSafe = isThreadSafe;
+    }
+
+    [JsonPropertyName("internalList")]
+    public ImmutableList<T> UnderlyingList
+    {
+        get
+        {
+            if (this.IsThreadSafe)
             {
-                throw new ArgumentException($"{nameof(maxSize)} must be at least 2!", nameof(maxSize));
-            }
-
-            this._list = new List<T>();
-            this.ActionWhenFull = actionWhenFull;
-            this.MaxSize = maxSize;
-        }
-
-        /// <summary>
-        ///     Constructor.
-        /// </summary>
-        /// <param name="capacity">       The capacity. </param>
-        /// <param name="maxSize">        (Optional) The maximum size of the. </param>
-        /// <param name="actionWhenFull"> (Optional) The action when full. </param>
-        public SizeLimitedList(int capacity, long maxSize = 32, SizeLimitedFullAction actionWhenFull = SizeLimitedFullAction.PopOldestItem)
-        {
-            if (maxSize < 2)
-            {
-                throw new ArgumentException($"{nameof(maxSize)} must be at least 2!", nameof(maxSize));
-            }
-
-            this._list = new List<T>(capacity);
-            this.ActionWhenFull = actionWhenFull;
-            this.MaxSize = maxSize;
-        }
-
-        /// <summary>
-        ///     Constructor.
-        /// </summary>
-        /// <param name="collection">     The collection. </param>
-        /// <param name="maxSize">        (Optional) The maximum size of the. </param>
-        /// <param name="actionWhenFull"> (Optional) The action when full. </param>
-        public SizeLimitedList(IEnumerable<T> collection, long maxSize = 32, SizeLimitedFullAction actionWhenFull = SizeLimitedFullAction.PopOldestItem)
-        {
-            if (maxSize < 2)
-            {
-                throw new ArgumentException($"{nameof(maxSize)} must be at least 2!", nameof(maxSize));
-            }
-
-            this._list = new List<T>(collection);
-            this.ActionWhenFull = actionWhenFull;
-            this.MaxSize = maxSize;
-        }
-
-        /// <summary>
-        ///     Gets or sets the action when full.
-        /// </summary>
-        /// <value>
-        ///     The action when full.
-        /// </value>
-        public SizeLimitedFullAction ActionWhenFull { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the maximum size.
-        /// </summary>
-        /// <value>
-        ///     The maximum size of the.
-        /// </value>
-        public long MaxSize { get; set; }
-
-        /// <summary>
-        ///     Indexer to get or set items within this collection using array index syntax.
-        /// </summary>
-        /// <param name="index"> Zero-based index of the entry to access. </param>
-        /// <returns>
-        ///     The indexed item.
-        /// </returns>
-        public T this[int index]
-        {
-            get => this._list[index];
-
-            set => this._list[index] = value;
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        ///     An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Adds an item and returns any popped items.
-        /// </summary>
-        /// <param name="item"> The item. </param>
-        /// <returns>
-        ///     The item that was popped to make space for the new item.
-        /// </returns>
-        public T AddItem(T item)
-        {
-            this._list.Add(item);
-
-            if (this._list.Count >= this.MaxSize)
-            {
-                switch (this.ActionWhenFull)
+                this._lock.EnterReadLock();
+                try
                 {
-                    case SizeLimitedFullAction.PopOldestItem:
-                        var newItem = this._list[0];
-                        this._list.RemoveAt(0);
-
-                        return newItem;
-
-                    case SizeLimitedFullAction.PopNewestItem:
-                        this._list.RemoveAt(this._list.Count - 2);
-
-                        return item;
+                    return this.internalList.ToImmutableList();
+                }
+                finally
+                {
+                    this._lock.ExitReadLock();
                 }
             }
 
-            IncrementCount();
+            return this.internalList.ToImmutableList();
+        }
+    }
 
-            return default;
+    /// <summary>
+    ///     Gets or sets the action to perform when the list exceeds its maximum size.
+    /// </summary>
+    [JsonPropertyName("actionWhenFull")]
+    public SizeLimitedCollectionFullAction ActionWhenFull { get; set; }
+
+    /// <summary>
+    ///     Gets or sets whether operations on this list are thread-safe.
+    /// </summary>
+    [field: JsonIgnore]
+    public bool IsThreadSafe { get; set; }
+
+    /// <summary>
+    ///     Gets the maximum size of the list.
+    /// </summary>
+    [JsonPropertyName("maxSize")]
+    [field: JsonIgnore]
+    public int MaxSize { get; private set; }
+
+    /// <summary>
+    ///     Gets the number of elements contained in the list.
+    /// </summary>
+    public int Count
+    {
+        get
+        {
+            if (this.IsThreadSafe)
+            {
+                this._lock.EnterReadLock();
+                try
+                {
+                    return this.internalList.Count;
+                }
+                finally
+                {
+                    this._lock.ExitReadLock();
+                }
+            }
+
+            return this.internalList.Count;
+        }
+    }
+
+    /// <summary>
+    ///     Gets a value indicating whether the list is read-only.
+    /// </summary>
+    public bool IsReadOnly => false;
+
+    /// <summary>
+    ///     Adds an item to the list. If the list is full, performs the specified action to handle the overflow.
+    /// </summary>
+    /// <param name="item">The item to add.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the list is full and no valid action is defined.</exception>
+    public void Add(T item)
+    {
+        AddAndReturn(item);
+    }
+
+    /// <summary>
+    ///     Removes all items from the list.
+    /// </summary>
+    public void Clear()
+    {
+        if (this.IsThreadSafe)
+        {
+            this._lock.EnterWriteLock();
+            try
+            {
+                this.internalList.Clear();
+            }
+            finally
+            {
+                this._lock.ExitWriteLock();
+            }
+        }
+        else
+        {
+            this.internalList.Clear();
+        }
+    }
+
+    /// <summary>
+    ///     Determines whether the list contains a specific value.
+    /// </summary>
+    /// <param name="item">The item to locate in the list.</param>
+    /// <returns>True if the item is found; otherwise, false.</returns>
+    public bool Contains(T item)
+    {
+        if (this.IsThreadSafe)
+        {
+            this._lock.EnterReadLock();
+            try
+            {
+                return this.internalList.Contains(item);
+            }
+            finally
+            {
+                this._lock.ExitReadLock();
+            }
         }
 
-        /// <summary>
-        ///     Adds items and returns any popped items.
-        /// </summary>
-        /// <param name="items"> The items. </param>
-        /// <returns>
-        ///     The items that were popped to make space for the new item.
-        /// </returns>
-        public List<T> AddItem(IEnumerable<T> items)
+        return this.internalList.Contains(item);
+    }
+
+    /// <summary>
+    ///     Copies the elements of the list to an array, starting at a particular array index.
+    /// </summary>
+    /// <param name="array">The destination array.</param>
+    /// <param name="arrayIndex">The zero-based index in the array at which copying begins.</param>
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        if (this.IsThreadSafe)
         {
-            var removedItems = new List<T>();
-            var itemsToRemove = -1;
-            var enumerable = items.ToList();
-            while (this._list.Count + enumerable.Count >= this.MaxSize && this.ActionWhenFull != SizeLimitedFullAction.Ignore)
+            this._lock.EnterReadLock();
+            try
             {
-                switch (this.ActionWhenFull)
+                this.internalList.CopyTo(array, arrayIndex);
+            }
+            finally
+            {
+                this._lock.ExitReadLock();
+            }
+        }
+        else
+        {
+            this.internalList.CopyTo(array, arrayIndex);
+        }
+    }
+
+    /// <summary>
+    ///     Returns an enumerator that iterates through the list.
+    /// </summary>
+    public IEnumerator<T> GetEnumerator()
+    {
+        // Return a snapshot to avoid enumeration during modification exceptions
+        if (this.IsThreadSafe)
+        {
+            this._lock.EnterReadLock();
+            try
+            {
+                return new List<T>(this.internalList).GetEnumerator();
+            }
+            finally
+            {
+                this._lock.ExitReadLock();
+            }
+        }
+
+        return this.internalList.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    /// <summary>
+    ///     Determines the index of a specific item in the list.
+    /// </summary>
+    /// <param name="item">The item to locate.</param>
+    /// <returns>The index of the item if found; otherwise, -1.</returns>
+    public int IndexOf(T item)
+    {
+        if (this.IsThreadSafe)
+        {
+            this._lock.EnterReadLock();
+            try
+            {
+                return this.internalList.IndexOf(item);
+            }
+            finally
+            {
+                this._lock.ExitReadLock();
+            }
+        }
+
+        return this.internalList.IndexOf(item);
+    }
+
+    /// <summary>
+    ///     Inserts an item to the list at the specified index.
+    /// </summary>
+    /// <param name="index">The zero-based index at which the item should be inserted.</param>
+    /// <param name="item">The item to insert.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the index is greater than the max size.</exception>
+    public void Insert(int index, T item)
+    {
+        if (index > this.MaxSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), "Index cannot be greater than the max size.");
+        }
+
+        if (this.IsThreadSafe)
+        {
+            this._lock.EnterWriteLock();
+            try
+            {
+                this.internalList.Insert(index, item);
+            }
+            finally
+            {
+                this._lock.ExitWriteLock();
+            }
+        }
+        else
+        {
+            this.internalList.Insert(index, item);
+        }
+    }
+
+    /// <summary>
+    ///     Gets or sets the element at the specified index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the element to get or set.</param>
+    /// <returns>The element at the specified index.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the index is out of range.</exception>
+    public T this[int index]
+    {
+        get
+        {
+            if (this.IsThreadSafe)
+            {
+                this._lock.EnterReadLock();
+                try
                 {
-                    case SizeLimitedFullAction.PopOldestItem:
-                        removedItems.Add(this._list[0]);
-                        this._list.RemoveAt(0);
+                    return this.internalList[index];
+                }
+                finally
+                {
+                    this._lock.ExitReadLock();
+                }
+            }
 
-                        break;
+            return this.internalList[index];
+        }
+        set
+        {
+            if (this.IsThreadSafe)
+            {
+                this._lock.EnterWriteLock();
+                try
+                {
+                    if (index < 0 || index >= this.internalList.Count)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
+                    }
 
-                    case SizeLimitedFullAction.PopNewestItem:
-                        removedItems.Add(this._list[this._list.Count - 1]);
-                        this._list.RemoveAt(this._list.Count - 1);
-
-                        break;
+                    this.internalList[index] = value;
+                }
+                finally
+                {
+                    this._lock.ExitWriteLock();
+                }
+            }
+            else
+            {
+                if (index < 0 || index >= this.internalList.Count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
                 }
 
-                DecrementCount();
-                if (this._list.Count == 0)
-                {
-                    itemsToRemove = enumerable.Count - (int) this.MaxSize;
-
-                    break;
-                }
+                this.internalList[index] = value;
             }
+        }
+    }
 
-            while (itemsToRemove > -1)
+    /// <summary>
+    ///     Removes the first occurrence of a specific object from the list.
+    /// </summary>
+    /// <param name="item">The item to remove.</param>
+    /// <returns>True if the item was successfully removed; otherwise, false.</returns>
+    public bool Remove(T item)
+    {
+        if (this.IsThreadSafe)
+        {
+            this._lock.EnterWriteLock();
+            try
             {
-                enumerable.RemoveAt(0);
-                itemsToRemove--;
+                return this.internalList.Remove(item);
             }
-
-            foreach (var item in enumerable)
+            finally
             {
-                this._list.Add(item);
-                IncrementCount();
+                this._lock.ExitWriteLock();
             }
-
-            return removedItems;
         }
 
-        /// <summary>
-        ///     Clears the collection.
-        /// </summary>
-        /// <seealso cref="Collection.Clear()" />
-        public override void Clear()
-        {
-            this._version = 0;
-            var oldCount = this.Count;
-            this._list.Clear();
-            UpdateCount(-oldCount);
-        }
+        return this.internalList.Remove(item);
+    }
 
-        /// <summary>
-        ///     Performs application-defined tasks associated with freeing, releasing, or resetting
-        ///     unmanaged resources.
-        /// </summary>
-        /// <seealso cref="Collection.Dispose()" />
-        public override void Dispose()
+    /// <summary>
+    ///     Removes the item at the specified index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the item to remove.</param>
+    public void RemoveAt(int index)
+    {
+        if (this.IsThreadSafe)
         {
-            Clear();
-            this._disposed = true;
-        }
-
-        /// <summary>
-        ///     Determine if 'item' exists.
-        /// </summary>
-        /// <param name="item"> The item. </param>
-        /// <returns>
-        ///     True if it succeeds, false if it fails.
-        /// </returns>
-        public bool Exists(T item)
-        {
-            return this._list.FindIndex(x => x.Equals(item)) != -1;
-        }
-
-        /// <summary>
-        ///     Searches for the first index.
-        /// </summary>
-        /// <param name="item"> The item. </param>
-        /// <returns>
-        ///     The found index.
-        /// </returns>
-        public int FindIndex(T item)
-        {
-            return this._list.FindIndex(x => x.Equals(item));
-        }
-
-        /// <summary>
-        ///     Gets an item.
-        /// </summary>
-        /// <param name="index"> Zero-based index of the. </param>
-        /// <returns>
-        ///     The item.
-        /// </returns>
-        public T GetItem(int index)
-        {
-            if (index < 0 || index >= this._list.Count)
+            this._lock.EnterWriteLock();
+            try
             {
-                return default;
+                this.internalList.RemoveAt(index);
             }
-
-            return this._list[index];
-        }
-
-        /// <summary>
-        ///     Gets the snapshot.
-        /// </summary>
-        /// <returns>
-        ///     The snapshot.
-        /// </returns>
-        public List<T> GetSnapshot()
-        {
-            return new List<T>(this._list);
-        }
-
-        /// <summary>
-        ///     Removes at described by index.
-        /// </summary>
-        /// <param name="index"> Zero-based index of the. </param>
-        /// <returns>
-        ///     True if it succeeds, false if it fails.
-        /// </returns>
-        public bool RemoveAt(int index)
-        {
-            if (index < 0 || index >= this.Count)
+            finally
             {
-                return false;
+                this._lock.ExitWriteLock();
             }
-
-            this._list.RemoveAt(index);
-            DecrementCount();
-
-            return true;
         }
-
-        /// <summary>
-        ///     Removes the item described by item.
-        /// </summary>
-        /// <param name="item"> The item. </param>
-        /// <returns>
-        ///     True if it succeeds, false if it fails.
-        /// </returns>
-        public bool RemoveItem(T item)
+        else
         {
-            var output = this._list.Remove(item);
+            this.internalList.RemoveAt(index);
+        }
+    }
 
-            if (output)
+    /// <summary>
+    ///     Adds an item to the list. If the list is full, performs the specified action to handle the overflow, and returns
+    ///     any popped items.
+    /// </summary>
+    /// <param name="item">The item to add.</param>
+    /// <returns>The item that was popped from the list, if any.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the list is full and no valid action is defined.</exception>
+    public T? AddAndReturn(T item)
+    {
+        if (this.IsThreadSafe)
+        {
+            lock (this._syncLock)
             {
-                DecrementCount();
+                return AddAndReturnInternal(item);
             }
-
-            return output;
         }
 
-        /// <summary>
-        ///     Removes the item described by item.
-        /// </summary>
-        /// <param name="items"> The items. </param>
-        /// <returns>
-        ///     True if it succeeds, false if it fails.
-        /// </returns>
-        public List<bool> RemoveItem(IEnumerable<T> items)
+        return AddAndReturnInternal(item);
+    }
+
+    private T? AddAndReturnInternal(T item)
+    {
+        T? poppedItem = default;
+        if (this.internalList.Count >= this.MaxSize)
         {
-            var output = new List<bool>();
-            foreach (var item in items)
+            if (this.ActionWhenFull == SizeLimitedCollectionFullAction.PopOldestItem)
             {
-                output.Add(RemoveItem(item));
+                poppedItem = this.internalList[0];
+                this.internalList.RemoveAt(0);
             }
-
-            return output;
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        private IEnumerator<T> GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Internals the get enumerator.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="CollectionModifiedException"></exception>
-        private IEnumerator<T> InternalGetEnumerator()
-        {
-            var enumeratorVersion = this._version;
-            for (var i = 0; i < this.Count; i++)
+            else if (this.ActionWhenFull == SizeLimitedCollectionFullAction.PopNewestItem)
             {
-                if (enumeratorVersion != this._version)
-                {
-                    throw new CollectionModifiedException();
-                }
-
-                yield return this._list[i];
+                poppedItem = this.internalList[this.internalList.Count - 1];
+                this.internalList.RemoveAt(this.internalList.Count - 1);
+            }
+            else
+            {
+                throw new InvalidOperationException("The collection is full and no valid action is defined.");
             }
         }
+
+        this.internalList.Add(item);
+        return poppedItem;
+    }
+
+    /// <summary>
+    ///     Returns a thread-safe snapshot of the list.
+    /// </summary>
+    /// <returns>An immutable copy of the current list state</returns>
+    public ImmutableList<T> AsImmutable()
+    {
+        if (this.IsThreadSafe)
+        {
+            lock (this._syncLock)
+            {
+                return this.internalList.ToImmutableList();
+            }
+        }
+
+        return this.internalList.ToImmutableList();
+    }
+
+    /// <summary>
+    ///     Changes the maximum size of the list and removes excess elements if necessary.
+    /// </summary>
+    /// <param name="newMaxSize">The new maximum size of the list.</param>
+    /// <returns>A list of elements that were removed to fit the new size.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when newMaxSize is less than 1.</exception>
+    public List<T> ChangeMaxSize(int newMaxSize)
+    {
+        if (this.IsThreadSafe)
+        {
+            lock (this._syncLock)
+            {
+                return ChangeMaxSizeInternal(newMaxSize);
+            }
+        }
+
+        return ChangeMaxSizeInternal(newMaxSize);
+    }
+
+    private List<T> ChangeMaxSizeInternal(int newMaxSize)
+    {
+        if (newMaxSize < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(newMaxSize),
+                "New max size must be greater than or equal to 1.");
+        }
+
+        if (newMaxSize >= this.internalList.Count)
+        {
+            this.MaxSize = newMaxSize;
+            return new List<T>();
+        }
+
+        this.MaxSize = newMaxSize;
+        List<T> poppedItems = new();
+        var remainingItemsToPop = this.internalList.Count - newMaxSize;
+
+        if (this.ActionWhenFull == SizeLimitedCollectionFullAction.PopNewestItem)
+        {
+            poppedItems.AddRange(this.internalList.GetRange(newMaxSize, remainingItemsToPop));
+            this.internalList.RemoveRange(newMaxSize, remainingItemsToPop);
+        }
+        else
+        {
+            poppedItems.AddRange(this.internalList.GetRange(0, remainingItemsToPop));
+            this.internalList.RemoveRange(0, remainingItemsToPop);
+        }
+
+        return poppedItems;
     }
 }

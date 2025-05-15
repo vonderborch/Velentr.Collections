@@ -1,40 +1,71 @@
 # Velentr.Collections
-A variety of helpful collections.
 
-# Installation
+![Logo](https://raw.githubusercontent.com/vonderborch/Velentr.Collections/refs/heads/main/logo.png)
+
+A variety of helpful collections, with a focus on thread-safety.
+
+## Installation
+
+### Nuget
+
 [![NuGet version (Velentr.Collections)](https://img.shields.io/nuget/v/Velentr.Collections.svg?style=flat-square)](https://www.nuget.org/packages/Velentr.Collections/)
 
-A nuget package is available: [Velentr.Collections](https://www.nuget.org/packages/Velentr.Collections/)
+The recommended installation approach is to use the available nuget
+package: [Velentr.Collections](https://www.nuget.org/packages/Velentr.Collections/)
 
-# Available Collections
-Namespace | Collection | Description | Min Supported Library Version | Example Usage
---------- | ---------- | ----------- | ----------------------------- | -------------
-Collections.Concurrent | ConcurrentLimitedPriorityQueue | A priority queue that utilizes a list of available priorities based on a `PriorityConverter` | 1.0.0 | `var c = new ConcurrentLimitedPriorityQueue<int, string>(new StringPriorityConverter());`
-Collections.Concurrent | ConcurrentPriorityQueue | A priority queue that has priorities available based on the `QueuePriority` enum | 1.0.0 | `var c = new ConcurrentPriorityQueue<string>();`
-Collections.Concurrent | ConcurrentPool | A pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection | 1.0.0 | `var c = new ConcurrentPool<object>();`
-Collections.LockFree | LockFreeLimitedPriorityQueue | A priority queue that utilizes a list of available priorities based on a `PriorityConverter` | 1.0.0 | `var c = new LockFreeLimitedPriorityQueue<int, string>(new StringPriorityConverter());`
-Collections.LockFree | LockFreePriorityQueue | A priority queue that has priorities available based on the `QueuePriority` enum | 1.0.0 | `var c = new LockFreePriorityQueue<string>();`
-Collections.LockFree | LockFreePool | A pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection | 1.0.0 | `var c = new LockFreePool<object>();`
-Collections.LockFree | LockFreeQueue | A lock-free Queue implementation | 1.0.0 | `var c = new LockFreeQueue<string>();`
-Collections.LockFree | LockFreeStack | A lock-free Stack implementation | 1.0.0 | `var c = new LockFreeStack<string>();`
-Collections | OrderedDictionary | A Collection that combines functionality of a dictionary and a list. | 1.1.0 | `var c = new OrderedDictionary<string, List<string>>();`
-Collections | SizeLimitedOrderedDictionary | A Collection that combines functionality of a dictionary and a list and that is also limited in max capacity. | 1.1.3 | `var c = new OrderedDictionary<string, List<string>>();`
-Collections | DictionaryCache | A Thread-Safe and Lock-Free dictionary optimized for reads | 1.1.0 | `var c = new DictionaryCache<string, int>();`
-Collections | SizeLimitedList | A list that is limited in max capacity | 1.1.0 | `var c = new SizeLimitedList<string>();`
-Collections | HistoryCollection | A collection implementing undo and redo functionality | 1.2.0 | `var c = new HistoryCollection<string>();`
-Collections | BiDirectionalDictionary | A bi-directional dictionary, where you can access the value for a key/value pair using the key or vice-versa | 1.2.0 | `var c = new HistoryCollection<string>();`
+### Clone
+
+Alternatively, you can clone this repo and reference the Velentr.Collections project in your project.
+
+## Available Collections
+
+| Collection                | Description                                                                                                                                                             | Min Supported Library Version | Documentation                                   |
+|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------|-------------------------------------------------|
+| BiDirectionalDictionary   | A dictionary where you can access the value for a given key, and the key for a given value                                                                              | 1.2.0                         | [Documentation](docs/BiDirectionalDictionary)   |
+| SizeLimitedList           | A list that is limited in maximum capacity and will automatically remove items when it reaches capacity                                                                 | 1.1.0                         | [Documentation](docs/SizeLimitedList)           |
+| SizeLimitedDictionary     | A dictionary that is limited in maximum capacity and will automatically remove items when it reaches capacity                                                           | 1.1.0                         | [Documentation](docs/SizeLimitedDictionary)     |
+| Pool                      | A pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection             | 1.0.0                         | [Documentation](docs/Pool)                      |
+| History                   | A collection that keeps track of the history of items added and removed from it. It can be used to track changes over time.                                             | 1.0.0                         | [Documentation](docs/History)                   |
+| ConcurrentPriorityQueue   | A thread-safe priority queue where the item with the lowest priority is returned on dequeue                                                                             | 1.0.0                         | [Documentation](docs/ConcurrentPriorityQueue)   |
+| ConcurrentPool            | A thread-safe pool of objects that can be used to hold objects and define a maximum amount. More efficient generally for games as it can help reduce garbage collection | 1.0.0                         | [Documentation](docs/ConcurrentPool)            |
+| ConcurrentSizeLimitedList | A thread-safe list that is limited in maximum capacity and automatically removes excess items when it is full                                                           | 1.0.0                         | [Documentation](docs/ConcurrentSizeLimitedList) |
+| LockFreePriorityQueue     | A lock-free priority queue where the item with the lowest priority is returned on dequeue                                                                               | 1.0.0                         | [Documentation](docs/LockFreePriorityQueue)     |
+| LockFreeList              | A lock-free linked list implementation                                                                                                                                  | 1.0.0                         | [Documentation](docs/LockFreeList)              |
+| LockFreeQueue             | A lock-free queue implementation                                                                                                                                        | 1.0.0                         | [Documentation](docs/LockFreeQueue)             |
+| LockFreeStack             | A lock-free stack implementation                                                                                                                                        | 1.0.0                         | [Documentation](docs/LockFreeStack)             |
 
 **_NOTES:_**
-- **Collections.Concurrent collections**: _Collections under this namespace utilize .NET Concurrent collections internally_
-- **Lock-Free**: _Collections under this namespace utilize custom lock-free base collections_
 
-# Deprecated Collections
-Collection | Description | Max Supported Library Version
----------- | ----------- | -----------------------------
-Bank | A Collection that combines functionality of a dictionary and a list. Renamed to `OrderedDictionary` in 1.1.0. | 1.0.5
-Cache | A Thread-Safe and Lock-Free dictionary optimized for reads. Renamed to `DictionaryCache` in 1.1.0. | 1.0.5
+- **Collections.Concurrent collections**: Collections under this namespace utilize .NET Concurrent collections
+- **Lock-Free**: Collections under this namespace utilize custom lock-free base collections
 
+## Future Collections
 
+- **LockFreeArrayList**: A lock-free array list implementation
+- **LockFreePool**: A lock-free pool implementation. Previously was implemented in this library, but removed due to
+  testing results and need for heavy refactoring.
 
-# Future Plans
+## Deprecated Collections
+
+| Collection                     | Deprecation Reason                                                  | Deprecation Library Version | Max Available Library Version |
+|--------------------------------|---------------------------------------------------------------------|-----------------------------|-------------------------------|
+| DictionaryCache                | Use .NET ImmutableDictionary instead.                               | 2.0.2                       | 2.0.2                         |
+| OrderedDictionary              | Use .NET OrderedDictionary instead.                                 | 2.0.2                       | 2.0.2                         |
+| SizeLimitedPool                | Use Velentr.Collections.Pool instead.                               | 2.0.2                       | 2.0.2                         |
+| HistoryCollection              | Use Velentr.Collections.History instead.                            | 2.0.2                       | 2.0.2                         |
+| LockFreePool                   | In need of heavy refactoring and testing.                           | 2.0.2                       | 2.0.2                         |
+| LockFreeLimitedPriorityQueue   | Use Velentr.Collections.LockFree.LockFreePriorityQueue instead.     | 2.0.2                       | 2.0.2                         |
+| ConcurrentLimitedPriorityQueue | Use Velentr.Collections.Concurrent.ConcurrentPriorityQueue instead. | 2.0.2                       | 2.0.2                         |
+
+## Development
+
+1. Clone or fork the repo
+2. Create a new branch
+3. Code!
+4. Push your changes and open a PR
+5. Once approved, they'll be merged in
+6. Profit!
+
+## Future Plans
+
 See list of issues under the Milestones: https://github.com/vonderborch/Velentr.Collections/milestones

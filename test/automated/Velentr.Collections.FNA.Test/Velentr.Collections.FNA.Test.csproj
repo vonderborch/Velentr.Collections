@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+        <Configurations>Release;Debug</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <AssemblyName>Velentr.Collections.Test</AssemblyName>
+        <RootNamespace>Velentr.Collections.Test</RootNamespace>
+        <ApplicationIcon>..\..\..\logo.ico</ApplicationIcon>
+        <AssemblyVersion>3.0.0.1</AssemblyVersion>
+        <FileVersion>3.0.0.1</FileVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <OutputPath>..\..\..\debug\tests\automated\fna\</OutputPath>
+        <DefineConstants>TRACE;FNA</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <OutputPath>..\..\..\release\tests\automated\fna\</OutputPath>
+        <DefineConstants>TRACE;FNA</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="6.0.2"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1"/>
+        <PackageReference Include="NUnit" Version="4.2.2"/>
+        <PackageReference Include="NUnit.Analyzers" Version="4.3.0"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="4.6.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="NUnit.Framework"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\..\..\.fna\fnalibs\**">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="app.config">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\.fna\FNA\FNA.Core.csproj" />
+      <ProjectReference Include="..\..\..\source\Velentr.Collections\Velentr.Collections.csproj" />
+    </ItemGroup>
+
+    <Import Project="..\Velentr.Collections.Shared.Test\Velentr.Collections.Shared.Test.projitems" Label="Shared"/>
+
+</Project>

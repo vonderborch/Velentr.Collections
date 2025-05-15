@@ -1,265 +1,286 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+using System.Collections;
 using System.Diagnostics;
-
-using Velentr.Collections.Exceptions;
+using System.Text.Json.Serialization;
 using Velentr.Collections.Internal;
-using Velentr.Core.Helpers.Threading;
 
-namespace Velentr.Collections.LockFree
+namespace Velentr.Collections.LockFree;
+
+/// <summary>
+///     A lock-free implementation of a queue data structure.
+///     This implementation is thread-safe without using locks, providing better scalability in multi-threaded scenarios.
+/// </summary>
+/// <typeparam name="T">The type of elements in the queue.</typeparam>
+[DebuggerDisplay("Count = {Count}")]
+public class LockFreeQueue<T> : ICollection, IEnumerable<T>
 {
+    [JsonIgnore] private int count;
+
+    [JsonIgnore] private Node<T> head;
+
+    [JsonIgnore] private Node<T> tail;
+
+    [JsonIgnore] private long version;
+
     /// <summary>
-    ///     Defines a Lock-Free Queue Collection (FIFO).
+    ///     Initializes a new instance of the <see cref="LockFreeQueue{T}" /> class.
     /// </summary>
-    /// <typeparam name="T">The type associated with the Queue instance</typeparam>
-    /// <seealso cref="Collections.Net.Collections.Collection" />
-    /// <seealso cref="IEnumerable{T}" />
-    /// <seealso cref="IEnumerable" />
-    [DebuggerDisplay("Count = {Count}")]
-    public class LockFreeQueue<T> : Collection, IEnumerable<T>, IEnumerable
+    public LockFreeQueue()
     {
-        /// <summary>
-        ///     The head
-        /// </summary>
-        private Node<T> _head;
+        this.version = 0;
+        this.head = new Node<T>();
+        this.tail = this.head;
+    }
 
-        /// <summary>
-        ///     The tail
-        /// </summary>
-        private Node<T> _tail;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="LockFreeQueue{T}" /> class with an initial value.
+    /// </summary>
+    /// <param name="value">The value to add to the queue.</param>
+    public LockFreeQueue(T value)
+    {
+        this.version = 0;
+        this.head = new Node<T>();
+        this.tail = this.head;
+        Enqueue(value);
+    }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LockFreeQueue{T}" /> class.
-        /// </summary>
-        public LockFreeQueue()
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="LockFreeQueue{T}" /> class with an initial collection of values.
+    /// </summary>
+    /// <param name="collection">The collection of values to add to the queue.</param>
+    [JsonConstructor]
+    public LockFreeQueue(IEnumerable<T> collection)
+    {
+        this.version = 0;
+        this.head = new Node<T>();
+        this.tail = this.head;
+        foreach (T item in collection)
         {
-            this._count = 0;
-            this._head = new Node<T>();
-            this._tail = this._head;
+            Enqueue(item);
         }
+    }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LockFreeQueue{T}" /> class.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public LockFreeQueue(T value)
+    /// <summary>
+    ///     Transforms the queue into a list.
+    /// </summary>
+    [JsonPropertyName("collection")]
+    public List<T> ToList
+    {
+        get
         {
-            this._count = 0;
-            this._head = new Node<T>();
-            this._tail = this._head;
-            Enqueue(value);
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        ///     An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Clears the collection.
-        /// </summary>
-        public override void Clear()
-        {
-            this._version = 0;
-            var oldHead = this._head;
-            this._head = this._tail = new Node<T>();
-
-            var nodes = 0;
-            while (oldHead != null)
+            var startingVersion = this.version;
+            List<T> list = new();
+            foreach (T item in this)
             {
-                nodes++;
-                var nextHead = oldHead.Next;
-                oldHead.Dispose();
-
-                oldHead = nextHead;
+                CollectionValidators.ValidateCollectionState(startingVersion, this.version);
+                list.Add(item);
             }
 
-            UpdateCount(-nodes);
+            return list;
+        }
+    }
+
+    /// <summary>
+    ///     Gets the number of elements contained in the queue.
+    /// </summary>
+    public int Count => this.count;
+
+    /// <summary>
+    ///     Gets a value indicating whether access to the queue is synchronized (thread safe).
+    ///     Always returns true for LockFreeQueue as it's thread-safe by design.
+    /// </summary>
+    public bool IsSynchronized => true;
+
+    /// <summary>
+    ///     Gets an object that can be used to synchronize access to the queue.
+    ///     Note: This property exists for ICollection compatibility but lock-free collections
+    ///     don't require external synchronization.
+    /// </summary>
+    [field: JsonIgnore]
+    public object SyncRoot { get; } = new();
+
+    /// <summary>
+    ///     Copies the elements of the queue to an array, starting at a particular index.
+    /// </summary>
+    /// <param name="array">The one-dimensional array that is the destination of the elements.</param>
+    /// <param name="index">The zero-based index in array at which copying begins.</param>
+    /// <exception cref="ArgumentNullException">Thrown if array is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if index is less than zero.</exception>
+    /// <exception cref="ArgumentException">
+    ///     Thrown if array is multidimensional or if the number of elements in the source
+    ///     exceeds available space.
+    /// </exception>
+    public void CopyTo(Array array, int index)
+    {
+        if (array == null)
+        {
+            throw new ArgumentNullException(nameof(array));
         }
 
-        /// <summary>
-        ///     Dequeues the next value from the Queue.
-        /// </summary>
-        /// <returns>The dequeued value.</returns>
-        public T Dequeue()
+        if (index < 0)
         {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            Dequeue(out var result);
-
-            return result;
+            throw new ArgumentOutOfRangeException(nameof(index), "Index must be non-negative");
         }
 
-        /// <summary>
-        ///     Dequeues the next value from the Queue.
-        /// </summary>
-        /// <param name="value">The dequeued value.</param>
-        /// <returns>Whether the dequeue was successful or not</returns>
-        /// <exception cref="Collections.Net.Exceptions.CollectionDisposedException"></exception>
-        public bool Dequeue(out T value)
+        if (array.Rank > 1)
         {
-            if (this._disposed)
+            throw new ArgumentException("Multidimensional arrays are not supported", nameof(array));
+        }
+
+        if (array.Length - index < this.count)
+        {
+            throw new ArgumentException("Not enough space in array from index to end of destination array");
+        }
+
+        var i = index;
+        foreach (T item in this)
+        {
+            array.SetValue(item, i++);
+        }
+    }
+
+    /// <summary>
+    ///     Returns an enumerator that iterates through the queue.
+    /// </summary>
+    /// <returns>An enumerator for the queue.</returns>
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    /// <summary>
+    ///     Returns an enumerator that iterates through the queue.
+    /// </summary>
+    /// <returns>An enumerator for the queue.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the queue is modified during enumeration.</exception>
+    public IEnumerator<T> GetEnumerator()
+    {
+        var startingVersion = this.version;
+        Node<T>? current = this.head.Next;
+
+        while (current != null)
+        {
+            CollectionValidators.ValidateCollectionState(startingVersion, this.version);
+            yield return current.Value;
+            current = current.Next;
+        }
+    }
+
+    /// <summary>
+    ///     Removes all elements from the queue.
+    /// </summary>
+    public void Clear()
+    {
+        this.head = new Node<T>();
+        this.tail = this.head;
+        Interlocked.Exchange(ref this.count, 0);
+        Interlocked.Exchange(ref this.version, 0);
+    }
+
+    /// <summary>
+    ///     Removes and returns the element at the front of the queue.
+    /// </summary>
+    /// <returns>The element at the front of the queue, or default value if the queue is empty.</returns>
+    public T? Dequeue()
+    {
+        Dequeue(out T? result);
+        return result;
+    }
+
+    /// <summary>
+    ///     Tries to remove and return the element at the front of the queue.
+    /// </summary>
+    /// <param name="value">
+    ///     When this method returns, contains the element at the front of the queue, or the default value if
+    ///     the queue is empty.
+    /// </param>
+    /// <returns>true if an element was removed; otherwise, false.</returns>
+    public bool Dequeue(out T? value)
+    {
+        T? result = default;
+        var updated = false;
+        Node<T> previousHead;
+        Node<T> previousTail;
+        Node<T>? previousNextHead;
+
+        do
+        {
+            previousHead = this.head;
+            previousTail = this.tail;
+            previousNextHead = previousHead.Next;
+
+            if (previousHead == this.head)
             {
-                throw new CollectionDisposedException();
-            }
-
-            var result = default(T);
-
-            var updated = false;
-            do
-            {
-                var previousHead = this._head;
-                var previousTail = this._tail;
-                var previousNextHead = previousHead.Next;
-
-                if (previousHead == this._head)
+                if (previousHead == previousTail)
                 {
-                    if (previousHead == previousTail)
+                    if (previousNextHead == null)
                     {
-                        if (previousNextHead == null)
-                        {
-                            value = default;
-
-                            return false;
-                        }
-
-                        AtomicOperations.CAS(ref this._head, previousNextHead, previousHead);
+                        value = default;
+                        return false;
                     }
+
+                    Interlocked.CompareExchange(ref this.tail, previousNextHead, previousTail);
                 }
                 else
                 {
                     result = previousNextHead.Value;
-                    updated = AtomicOperations.CAS(ref this._head, previousNextHead, previousHead);
+                    updated = Interlocked.CompareExchange(ref this.head, previousNextHead, previousHead) ==
+                              previousHead;
                 }
-            } while (!updated);
-
-            DecrementCount();
-            value = result;
-
-            return true;
-        }
-
-        /// <summary>
-        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public override void Dispose()
-        {
-            this._disposed = true;
-            Clear();
-            this._head.Dispose();
-            this._tail.Dispose();
-        }
-
-        /// <summary>
-        ///     Enqueues the specified value onto the Queue.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Collections.Net.Exceptions.CollectionDisposedException"></exception>
-        public void Enqueue(T value)
-        {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
             }
+        } while (!updated);
 
-            Node<T> previousTail = null;
-            Node<T> previousNext = null;
-            var newNode = new Node<T>(value);
+        Interlocked.Decrement(ref this.count);
+        Interlocked.Increment(ref this.version);
+        value = result;
+        return true;
+    }
 
-            var updated = false;
-            do
+    /// <summary>
+    ///     Adds an element to the end of the queue.
+    /// </summary>
+    /// <param name="value">The element to add to the queue.</param>
+    public void Enqueue(T value)
+    {
+        Node<T>? previousTail;
+        Node<T>? previousNext;
+        Node<T> newNode = new(value);
+
+        var updated = false;
+        do
+        {
+            previousTail = this.tail;
+            previousNext = previousTail.Next;
+
+            if (this.tail == previousTail)
             {
-                previousTail = this._tail;
-                previousNext = previousTail.Next;
-
-                if (this._tail == previousTail)
+                if (previousNext == null)
                 {
-                    if (previousNext == null)
-                    {
-                        updated = AtomicOperations.CAS(ref this._tail.Next, newNode, null);
-                    }
-                    else
-                    {
-                        AtomicOperations.CAS(ref this._tail, previousNext, previousTail);
-                    }
+                    // Attempt to link the new node to the end of the queue
+                    updated = Interlocked.CompareExchange(ref previousTail.Next, newNode, null) == null;
                 }
-            } while (!updated);
-
-            IncrementCount();
-            AtomicOperations.CAS(ref this._tail, newNode, previousTail);
-        }
-
-        /// <summary>
-        ///     Peeks at the value at the top of the Queue.
-        /// </summary>
-        /// <returns>The next value.</returns>
-        public T Peek()
-        {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            return this._head.Next.Value;
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        private IEnumerator<T> GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Internals the get enumerator.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="Collections.Net.Exceptions.CollectionDisposedException"></exception>
-        /// <exception cref="Collections.Net.Exceptions.CollectionModifiedException"></exception>
-        private IEnumerator<T> InternalGetEnumerator()
-        {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            var enumeratorVersion = this._version;
-            var head = this._head;
-
-            do
-            {
-                if (enumeratorVersion != this._version)
+                else
                 {
-                    throw new CollectionModifiedException();
+                    // Tail is not at the end of the queue, move it forward
+                    Interlocked.CompareExchange(ref this.tail, previousNext, previousTail);
                 }
+            }
+        } while (!updated);
 
-                yield return head.Value;
-                head = head.Next;
-            } while (head != null);
+        Interlocked.Increment(ref this.version);
+        Interlocked.Increment(ref this.count);
+    }
+
+    /// <summary>
+    ///     Gets the element at the front of the queue without removing it.
+    /// </summary>
+    /// <returns>The element at the front of the queue, or default value if the queue is empty.</returns>
+    public T? Peek()
+    {
+        if (this.head.Next == null)
+        {
+            return default;
         }
+
+        return this.head.Next.Value;
     }
 }

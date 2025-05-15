@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TargetFramework>net9.0</TargetFramework>
+        <RollForward>Major</RollForward>
+        <PublishReadyToRun>false</PublishReadyToRun>
+        <TieredCompilation>false</TieredCompilation>
+        <AssemblyName>Velentr.Collections.TestApp</AssemblyName>
+        <RootNamespace>Velentr.Collections.TestApp</RootNamespace>
+        <LangVersion>default</LangVersion>
+        <IsPackable>false</IsPackable>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <ApplicationIcon>..\..\..\logo.ico</ApplicationIcon>
+        <AssemblyVersion>3.0.0.1</AssemblyVersion>
+        <FileVersion>3.0.0.1</FileVersion>
+    </PropertyGroup>
+    <PropertyGroup>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>..\..\..\logo.ico</ApplicationIcon>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <OutputPath>..\..\..\debug\tests\manual\monogame\</OutputPath>
+        <DefineConstants>TRACE;MONOGAME</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <OutputPath>..\..\..\release\tests\manual\monogame\</OutputPath>
+        <DefineConstants>TRACE;MONOGAME</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Update="Content\font.xnb">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.3" />
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.3" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\source\Velentr.Collections\Velentr.Collections.csproj" />
+    </ItemGroup>
+    <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
+        <Message Text="Restoring dotnet tools" Importance="High"/>
+        <Exec Command="dotnet tool restore"/>
+    </Target>
+    <Import Project="..\Velentr.Collections.Shared.TestApp\Velentr.Collections.Shared.TestApp.projitems" Label="Shared"/>
+</Project>

@@ -1,96 +1,89 @@
-﻿using System;
-using System.Collections.Generic;
+namespace Velentr.Collections.Events;
 
-namespace Velentr.Collections.Events
+/// <summary>
+///     Provides a generic event management class that handles event subscriptions
+///     and maintains a list of registered event handlers.
+/// </summary>
+/// <typeparam name="T">The type of EventArgs used by the event.</typeparam>
+public class CollectionEvent<T> where T : EventArgs
 {
     /// <summary>
-    /// An event that fires as part of a Collection
+    ///     List of registered event handlers to enable tracking and bulk operations.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class CollectionEvent<T> where T : EventArgs
+    internal List<EventHandler<T>> Delegates = new();
+
+    /// <summary>
+    ///     Removes all event handlers from this collection event.
+    /// </summary>
+    public void Clear()
     {
-        /// <summary>
-        /// The delegates
-        /// </summary>
-        internal List<EventHandler<T>> Delegates = new List<EventHandler<T>>();
-
-        /// <summary>
-        /// Occurs when [event].
-        /// </summary>
-        public event EventHandler<T> Event
+        List<EventHandler<T>> list = this.Delegates;
+        for (var i = 0; i < list.Count; i++)
         {
-            add
-            {
-                InternalEvent += value;
-                Delegates.Add(value);
-            }
-
-            remove
-            {
-                InternalEvent -= value;
-                Delegates.Remove(value);
-            }
+            this.InternalEvent -= list[i];
         }
 
-        /// <summary>
-        /// Occurs when [internal event].
-        /// </summary>
-        internal event EventHandler<T> InternalEvent;
+        this.Delegates.Clear();
+    }
 
-        /// <summary>
-        /// Implements the operator -.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static CollectionEvent<T> operator -(CollectionEvent<T> left, EventHandler<T> right)
+    /// <summary>
+    ///     Gets or sets the event that clients can subscribe to or unsubscribe from.
+    /// </summary>
+    public event EventHandler<T> Event
+    {
+        add
         {
-            left.InternalEvent -= right;
-            left.Delegates.Remove(right);
-
-            return left;
+            this.InternalEvent += value;
+            this.Delegates.Add(value);
         }
 
-        /// <summary>
-        /// Implements the operator +.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static CollectionEvent<T> operator +(CollectionEvent<T> left, EventHandler<T> right)
+        remove
         {
-            left.InternalEvent += right;
-            left.Delegates.Add(right);
-
-            return left;
+            this.InternalEvent -= value;
+            this.Delegates.Remove(value);
         }
+    }
 
-        /// <summary>
-        /// Clears this instance.
-        /// </summary>
-        public void Clear()
-        {
-            var list = Delegates;
-            for (var i = 0; i < list.Count; i++)
-            {
-                InternalEvent -= list[i];
-            }
+    /// <summary>
+    ///     Triggers the event with the specified sender and event arguments.
+    /// </summary>
+    /// <param name="sender">The source of the event.</param>
+    /// <param name="e">The event data.</param>
+    public void EventTriggered(object sender, T e)
+    {
+        this.InternalEvent?.Invoke(sender, e);
+    }
 
-            Delegates.Clear();
-        }
+    /// <summary>
+    ///     The internal event that will be triggered when the public event is invoked.
+    /// </summary>
+    internal event EventHandler<T>? InternalEvent;
 
-        /// <summary>
-        /// Triggers the event.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The e.</param>
-        public void TriggerEvent(object sender, T e)
-        {
-            InternalEvent?.Invoke(sender, e);
-        }
+    /// <summary>
+    ///     Adds an event handler to the collection event.
+    /// </summary>
+    /// <param name="left">The collection event to add to.</param>
+    /// <param name="right">The event handler to add.</param>
+    /// <returns>The modified collection event.</returns>
+    public static CollectionEvent<T> operator +(CollectionEvent<T> left, EventHandler<T> right)
+    {
+        left.InternalEvent += right;
+        left.Delegates.Add(right);
+
+        return left;
+    }
+
+    /// <summary>
+    ///     Removes an event handler from the collection event.
+    /// </summary>
+    /// <param name="left">The collection event to remove from.</param>
+    /// <param name="right">The event handler to remove.</param>
+    /// <returns>The modified collection event.</returns>
+    public static CollectionEvent<T> operator -(CollectionEvent<T> left, EventHandler<T> right)
+    {
+        left.InternalEvent -= right;
+        left.Delegates.Remove(right);
+
+        return left;
     }
 }

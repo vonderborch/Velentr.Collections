@@ -1,239 +1,214 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
+namespace Velentr.Collections.Concurrent;
 
-using Velentr.Collections.Exceptions;
-using Velentr.Collections.LockFree;
-using Velentr.Collections.PriorityConverters;
-
-namespace Velentr.Collections.Concurrent
+/// <summary>
+///     A thread-safe implementation of PriorityQueue that synchronizes access to the underlying queue.
+///     This class provides concurrent operations on a priority queue by using locks to ensure thread safety.
+/// </summary>
+/// <typeparam name="TElement">The type of elements contained in the queue.</typeparam>
+/// <typeparam name="TPriority">The type of priority associated with the elements.</typeparam>
+public class ConcurrentPriorityQueue<TElement, TPriority> : PriorityQueue<TElement, TPriority>
 {
+    private readonly object _syncRoot = new();
+
     /// <summary>
-    ///     Defines a Concurrent Priority Queue Collection (FIFO).
+    ///     Initializes a new instance of the <see cref="ConcurrentPriorityQueue{TElement, TPriority}" /> class.
     /// </summary>
-    /// <typeparam name="T">The type associated with the Priority Queue instance</typeparam>
-    /// <seealso cref="Collections.Net.Collections.Collection" />
-    /// <seealso cref="IEnumerable{T}" />
-    /// <seealso cref="IEnumerable" />
-    [DebuggerDisplay("Count = {Count}")]
-    public class ConcurrentPriorityQueue<T> : Collection, IEnumerable<T>, IEnumerable
+    public ConcurrentPriorityQueue()
     {
-        /// <summary>
-        ///     The queues
-        /// </summary>
-        private readonly Dictionary<QueuePriority, ConcurrentQueue<T>> _queues;
+    }
 
-        /// <summary>
-        ///     The valid integer values
-        /// </summary>
-        private readonly List<int> _validIntegerValues;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ConcurrentPriorityQueue{TElement, TPriority}" /> class with the
+    ///     specified initial capacity.
+    /// </summary>
+    /// <param name="initialCapacity">The initial number of elements the queue can contain.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="initialCapacity" /> is less than 0.</exception>
+    public ConcurrentPriorityQueue(int initialCapacity) : base(initialCapacity)
+    {
+    }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LockFreePriorityQueue{T}" /> class.
-        /// </summary>
-        public ConcurrentPriorityQueue()
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ConcurrentPriorityQueue{TElement, TPriority}" /> class with the
+    ///     specified comparer.
+    /// </summary>
+    /// <param name="comparer">
+    ///     The comparer used to determine the priority of elements. If null, the default comparer for
+    ///     <typeparamref name="TPriority" /> is used.
+    /// </param>
+    public ConcurrentPriorityQueue(IComparer<TPriority> comparer) : base(comparer)
+    {
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ConcurrentPriorityQueue{TElement, TPriority}" /> class with the
+    ///     specified initial capacity and comparer.
+    /// </summary>
+    /// <param name="initialCapacity">The initial number of elements the queue can contain.</param>
+    /// <param name="comparer">
+    ///     The comparer used to determine the priority of elements. If null, the default comparer for
+    ///     <typeparamref name="TPriority" /> is used.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="initialCapacity" /> is less than 0.</exception>
+    public ConcurrentPriorityQueue(int initialCapacity, IComparer<TPriority> comparer)
+        : base(initialCapacity, comparer)
+    {
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ConcurrentPriorityQueue{TElement, TPriority}" /> class with the
+    ///     specified elements and priorities.
+    /// </summary>
+    /// <param name="items">The collection of element-priority pairs to add to the queue.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="items" /> is null.</exception>
+    public ConcurrentPriorityQueue(IEnumerable<(TElement Element, TPriority Priority)> items)
+        : base(items)
+    {
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ConcurrentPriorityQueue{TElement, TPriority}" /> class with the
+    ///     specified elements, priorities, and comparer.
+    /// </summary>
+    /// <param name="items">The collection of element-priority pairs to add to the queue.</param>
+    /// <param name="comparer">
+    ///     The comparer used to determine the priority of elements. If null, the default comparer for
+    ///     <typeparamref name="TPriority" /> is used.
+    /// </param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="items" /> is null.</exception>
+    public ConcurrentPriorityQueue(IEnumerable<(TElement Element, TPriority Priority)> items,
+        IComparer<TPriority> comparer) : base(items, comparer)
+    {
+    }
+
+    /// <summary>
+    ///     Gets the number of elements contained in the queue in a thread-safe manner.
+    /// </summary>
+    public new int Count
+    {
+        get
         {
-            this._queues = new Dictionary<QueuePriority, ConcurrentQueue<T>>(Enum.GetValues(typeof(QueuePriority)).Length);
-            this._validIntegerValues = new List<int>(Enum.GetValues(typeof(QueuePriority)).Length);
-            var values = Enum.GetValues(typeof(QueuePriority));
-            for (var i = 0; i < values.Length; i++)
+            lock (this._syncRoot)
             {
-                this._queues.Add((QueuePriority) values.GetValue(i), new ConcurrentQueue<T>());
-                this._validIntegerValues.Add((int) values.GetValue(i));
+                return base.Count;
             }
         }
+    }
 
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    /// <summary>
+    ///     Removes all elements from the queue in a thread-safe manner.
+    /// </summary>
+    public new void Clear()
+    {
+        lock (this._syncRoot)
         {
-            return InternalGetEnumerator();
+            base.Clear();
         }
+    }
 
-        /// <summary>
-        ///     Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        ///     An <see cref="T:System.Collections.IEnumerator"></see> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
+    /// <summary>
+    ///     Removes and returns the element with the highest priority from the queue in a thread-safe manner.
+    /// </summary>
+    /// <returns>The element with the highest priority.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the queue is empty.</exception>
+    public new TElement Dequeue()
+    {
+        lock (this._syncRoot)
         {
-            return InternalGetEnumerator();
+            return base.Dequeue();
         }
+    }
 
-        /// <summary>
-        ///     Clears the collection.
-        /// </summary>
-        public override void Clear()
+    /// <summary>
+    ///     Adds an element with an associated priority to the queue in a thread-safe manner.
+    /// </summary>
+    /// <param name="element">The element to add to the queue.</param>
+    /// <param name="priority">The priority associated with the element.</param>
+    public new void Enqueue(TElement element, TPriority priority)
+    {
+        lock (this._syncRoot)
         {
-            this._version = 0;
-            long count = 0;
-            foreach (var queue in this._queues)
-            {
-                count += queue.Value.Count;
-                while (queue.Value.TryDequeue(out var _))
-                {
-                    ;
-                }
-            }
-
-            UpdateCount(-count);
+            base.Enqueue(element, priority);
         }
+    }
 
-        /// <summary>
-        ///     Dequeues the specified value.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns></returns>
-        /// <exception cref="CollectionDisposedException"></exception>
-        public bool Dequeue(out T value)
+    /// <summary>
+    ///     Adds a collection of element-priority pairs to the queue in a thread-safe manner.
+    /// </summary>
+    /// <param name="items">The collection of element-priority pairs to add.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="items" /> is null.</exception>
+    public new void EnqueueRange(IEnumerable<(TElement Element, TPriority Priority)> items)
+    {
+        lock (this._syncRoot)
         {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            foreach (var queue in this._queues)
-            {
-                if (queue.Value.TryDequeue(out value))
-                {
-                    DecrementCount();
-
-                    return true;
-                }
-            }
-
-            value = default;
-
-            return false;
+            base.EnqueueRange(items);
         }
+    }
 
-        /// <summary>
-        ///     Dequeues this instance.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="CollectionDisposedException"></exception>
-        public T Dequeue()
+    /// <summary>
+    ///     Adds a collection of elements, all with the same priority, to the queue in a thread-safe manner.
+    /// </summary>
+    /// <param name="elements">The collection of elements to add.</param>
+    /// <param name="priority">The priority to associate with all the elements.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="elements" /> is null.</exception>
+    public new void EnqueueRange(IEnumerable<TElement> elements, TPriority priority)
+    {
+        lock (this._syncRoot)
         {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            Dequeue(out var value);
-
-            return value;
+            base.EnqueueRange(elements, priority);
         }
+    }
 
-        /// <summary>
-        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public override void Dispose()
+    /// <summary>
+    ///     Returns the element with the highest priority without removing it from the queue in a thread-safe manner.
+    /// </summary>
+    /// <returns>The element with the highest priority.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the queue is empty.</exception>
+    public new TElement Peek()
+    {
+        lock (this._syncRoot)
         {
-            this._disposed = true;
-            Clear();
+            return base.Peek();
         }
+    }
 
-        /// <summary>
-        ///     Enqueues the specified value.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="priority">The priority.</param>
-        /// <exception cref="CollectionDisposedException"></exception>
-        public void Enqueue(T value, QueuePriority priority)
+    /// <summary>
+    ///     Attempts to remove and return the element with the highest priority from the queue in a thread-safe manner.
+    /// </summary>
+    /// <param name="element">
+    ///     When this method returns, contains the removed element, if the operation was successful;
+    ///     otherwise, the default value for the type.
+    /// </param>
+    /// <param name="priority">
+    ///     When this method returns, contains the priority of the removed element, if the operation was
+    ///     successful; otherwise, the default value for the type.
+    /// </param>
+    /// <returns>true if an element was removed and returned successfully; otherwise, false.</returns>
+    public new bool TryDequeue(out TElement element, out TPriority priority)
+    {
+        lock (this._syncRoot)
         {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            this._queues[priority].Enqueue(value);
-            IncrementCount();
+            return base.TryDequeue(out element, out priority);
         }
+    }
 
-        /// <summary>
-        ///     Enqueues the specified value.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="priority">The priority.</param>
-        /// <exception cref="CollectionDisposedException"></exception>
-        /// <exception cref="InvalidPriorityException"></exception>
-        public void Enqueue(T value, int priority)
+    /// <summary>
+    ///     Attempts to return the element with the highest priority without removing it from the queue in a thread-safe
+    ///     manner.
+    /// </summary>
+    /// <param name="element">
+    ///     When this method returns, contains the element with the highest priority, if the operation was
+    ///     successful; otherwise, the default value for the type.
+    /// </param>
+    /// <param name="priority">
+    ///     When this method returns, contains the priority of the element, if the operation was successful;
+    ///     otherwise, the default value for the type.
+    /// </param>
+    /// <returns>true if an element was returned successfully; otherwise, false.</returns>
+    public new bool TryPeek(out TElement element, out TPriority priority)
+    {
+        lock (this._syncRoot)
         {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            if (IsValidPriority(priority))
-            {
-                throw new InvalidPriorityException();
-            }
-
-            Enqueue(value, (QueuePriority) priority);
-        }
-
-        /// <summary>
-        ///     Determines whether [is valid priority] [the specified priority].
-        /// </summary>
-        /// <param name="priority">The priority.</param>
-        /// <returns>
-        ///     <c>true</c> if [is valid priority] [the specified priority]; otherwise, <c>false</c>.
-        /// </returns>
-        /// <exception cref="CollectionDisposedException"></exception>
-        public bool IsValidPriority(int priority)
-        {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            return this._validIntegerValues.Contains(priority);
-        }
-
-        /// <summary>
-        ///     Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        ///     An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        private IEnumerator<T> GetEnumerator()
-        {
-            return InternalGetEnumerator();
-        }
-
-        /// <summary>
-        ///     Internals the get enumerator.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="CollectionDisposedException"></exception>
-        /// <exception cref="CollectionModifiedException"></exception>
-        private IEnumerator<T> InternalGetEnumerator()
-        {
-            if (this._disposed)
-            {
-                throw new CollectionDisposedException();
-            }
-
-            var enumeratorVersion = this._version;
-            foreach (var queue in this._queues)
-            {
-                foreach (var item in queue.Value)
-                {
-                    if (enumeratorVersion != this._version)
-                    {
-                        throw new CollectionModifiedException();
-                    }
-
-                    yield return item;
-                }
-            }
+            return base.TryPeek(out element, out priority);
         }
     }
 }
