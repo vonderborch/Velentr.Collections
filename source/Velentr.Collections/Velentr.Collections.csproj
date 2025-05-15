@@ -3,11 +3,11 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>3.0.0.1</Version>
+        <Version>3.0.0.2</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>Velentr.Collections</Title>
         <Authors>Christian Webber</Authors>
-        <Description>My library</Description>
+        <Description>A variety of helpful collections, with a focus on thread-safety.</Description>
         <Copyright>(c) 2025</Copyright>
         <PackageProjectUrl>https://github.com/vonderborch/Velentr.Collections</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -15,8 +15,8 @@
         <PackageIcon>logo.png</PackageIcon>
         <RepositoryUrl>https://github.com/vonderborch/Velentr.Collections</RepositoryUrl>
         <PackageTags>Velentr, Collections, Thread-Safe</PackageTags>
-        <AssemblyVersion>3.0.0.1</AssemblyVersion>
-        <FileVersion>3.0.0.1</FileVersion>
+        <AssemblyVersion>3.0.0.2</AssemblyVersion>
+        <FileVersion>3.0.0.2</FileVersion>
         <Company>Christian Webber</Company>
     </PropertyGroup>
 
