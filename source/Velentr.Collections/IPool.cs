@@ -1,5 +1,6 @@
 using Velentr.Collections.CollectionFullActions;
 using Velentr.Collections.Events;
+using Velentr.Core.Eventing;
 
 namespace Velentr.Collections;
 
@@ -27,7 +28,7 @@ public interface IPool<T> : ICollection<T>, IDisposable
     /// <summary>
     ///     Event that is triggered when a slot is claimed in the pool.
     /// </summary>
-    CollectionEvent<ClaimedSlotPoolEventArgs<T>> ClaimedSlotEvent { get; set; }
+    Event<ClaimedSlotPoolEventArgs<T>> ClaimedSlotEvent { get; set; }
 
     /// <summary>
     ///     Gets or sets the item at the specified index.
@@ -41,12 +42,12 @@ public interface IPool<T> : ICollection<T>, IDisposable
     /// <summary>
     ///     Event that is triggered when a slot is released in the pool.
     /// </summary>
-    CollectionEvent<ReleasedSlotPoolEventArgs<T>> ReleasedSlotEvent { get; set; }
+    Event<ReleasedSlotPoolEventArgs<T>> ReleasedSlotEvent { get; set; }
 
     /// <summary>
     ///     Event that is triggered when a slot claim operation fails.
     /// </summary>
-    CollectionEvent<SlotClaimFailureEventArgs<T>> SlotClaimFailureEvent { get; set; }
+    Event<SlotClaimFailureEventArgs<T>> SlotClaimFailureEvent { get; set; }
 
     /// <summary>
     ///     Adds an item to the pool and returns any item that was removed due to the pool being full.

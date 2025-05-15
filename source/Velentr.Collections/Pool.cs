@@ -5,6 +5,7 @@ using Velentr.Collections.CollectionFullActions;
 using Velentr.Collections.Events;
 using Velentr.Collections.Internal;
 using Velentr.Collections.PoolHelpers;
+using Velentr.Core.Eventing;
 using Velentr.Core.Validation;
 
 namespace Velentr.Collections;
@@ -67,9 +68,9 @@ public class Pool<T> : IPool<T>
         this.count = 0;
         this.internalStructure = new List<InternalPoolEntry<T>>(maxSize);
         this.indexHistory = new History<int>(maxSize);
-        this.ClaimedSlotEvent = new CollectionEvent<ClaimedSlotPoolEventArgs<T>>();
-        this.ReleasedSlotEvent = new CollectionEvent<ReleasedSlotPoolEventArgs<T>>();
-        this.SlotClaimFailureEvent = new CollectionEvent<SlotClaimFailureEventArgs<T>>();
+        this.ClaimedSlotEvent = new Event<ClaimedSlotPoolEventArgs<T>>();
+        this.ReleasedSlotEvent = new Event<ReleasedSlotPoolEventArgs<T>>();
+        this.SlotClaimFailureEvent = new Event<SlotClaimFailureEventArgs<T>>();
 
         this.ActionWhenFull = actionWhenFull;
         this.MaxSize = maxSize;
@@ -212,7 +213,7 @@ public class Pool<T> : IPool<T>
     ///     Event that is triggered when a slot is claimed in the pool.
     /// </summary>
     [JsonIgnore]
-    public CollectionEvent<ClaimedSlotPoolEventArgs<T>> ClaimedSlotEvent { get; set; }
+    public Event<ClaimedSlotPoolEventArgs<T>> ClaimedSlotEvent { get; set; }
 
     /// <summary>
     ///     Clears all items from the pool.
@@ -412,7 +413,7 @@ public class Pool<T> : IPool<T>
     ///     Event that is triggered when a slot is released in the pool.
     /// </summary>
     [JsonIgnore]
-    public CollectionEvent<ReleasedSlotPoolEventArgs<T>> ReleasedSlotEvent { get; set; }
+    public Event<ReleasedSlotPoolEventArgs<T>> ReleasedSlotEvent { get; set; }
 
     /// <summary>
     ///     Removes the first occurrence of a specific item from the pool.
@@ -445,7 +446,7 @@ public class Pool<T> : IPool<T>
     ///     Event that is triggered when a slot claim operation fails.
     /// </summary>
     [JsonIgnore]
-    public CollectionEvent<SlotClaimFailureEventArgs<T>> SlotClaimFailureEvent { get; set; }
+    public Event<SlotClaimFailureEventArgs<T>> SlotClaimFailureEvent { get; set; }
 
     /// <summary>
     ///     Gets an array of all items in the pool.

@@ -1,7 +1,8 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Diagnostics;
 using Velentr.Collections.CollectionFullActions;
 using Velentr.Collections.Events;
+using Velentr.Core.Eventing;
 
 namespace Velentr.Collections.Concurrent;
 
@@ -32,9 +33,9 @@ public class ConcurrentPool<T> : IPool<T>
         this.internalPool = new Pool<T>(maxSize, actionWhenFull);
 
         // Connect to the internal pool's events
-        this.internalPool.ClaimedSlotEvent = new CollectionEvent<ClaimedSlotPoolEventArgs<T>>();
-        this.internalPool.ReleasedSlotEvent = new CollectionEvent<ReleasedSlotPoolEventArgs<T>>();
-        this.internalPool.SlotClaimFailureEvent = new CollectionEvent<SlotClaimFailureEventArgs<T>>();
+        this.internalPool.ClaimedSlotEvent = new Event<ClaimedSlotPoolEventArgs<T>>();
+        this.internalPool.ReleasedSlotEvent = new Event<ReleasedSlotPoolEventArgs<T>>();
+        this.internalPool.SlotClaimFailureEvent = new Event<SlotClaimFailureEventArgs<T>>();
     }
 
     /// <summary>
@@ -167,7 +168,7 @@ public class ConcurrentPool<T> : IPool<T>
     /// <summary>
     ///     Event that is triggered when a slot is claimed in the pool.
     /// </summary>
-    public CollectionEvent<ClaimedSlotPoolEventArgs<T>> ClaimedSlotEvent
+    public Event<ClaimedSlotPoolEventArgs<T>> ClaimedSlotEvent
     {
         get
         {
@@ -290,7 +291,7 @@ public class ConcurrentPool<T> : IPool<T>
     /// <summary>
     ///     Event that is triggered when a slot is released in the pool.
     /// </summary>
-    public CollectionEvent<ReleasedSlotPoolEventArgs<T>> ReleasedSlotEvent
+    public Event<ReleasedSlotPoolEventArgs<T>> ReleasedSlotEvent
     {
         get
         {
@@ -324,7 +325,7 @@ public class ConcurrentPool<T> : IPool<T>
     /// <summary>
     ///     Event that is triggered when a slot claim operation fails.
     /// </summary>
-    public CollectionEvent<SlotClaimFailureEventArgs<T>> SlotClaimFailureEvent
+    public Event<SlotClaimFailureEventArgs<T>> SlotClaimFailureEvent
     {
         get
         {
