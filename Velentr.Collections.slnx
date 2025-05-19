@@ -32,6 +32,7 @@
     <File Path="docs\LockFreeList.md" />
     <File Path="docs\LockFreeQueue.md" />
     <File Path="docs\LockFreeStack.md" />
+    <File Path="docs\DefaultDictionary.md" />
   </Folder>
   <Folder Name="/SolutionFiles/">
     <File Path=".gitattributes" />

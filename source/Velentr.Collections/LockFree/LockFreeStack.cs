@@ -13,9 +13,8 @@ namespace Velentr.Collections.LockFree;
 [DebuggerDisplay("Count = {Count}")]
 public class LockFreeStack<T> : ICollection, IEnumerable<T>
 {
-    [JsonIgnore] private int count;
-
     [JsonIgnore] private readonly Node<T> head;
+    [JsonIgnore] private int count;
 
     [JsonIgnore] private long version;
 

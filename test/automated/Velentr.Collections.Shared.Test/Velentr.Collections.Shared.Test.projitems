@@ -17,6 +17,7 @@
         <Compile Include="$(MSBuildThisFileDirectory)LockFree\TestLockFreeQueue.cs"/>
         <Compile Include="$(MSBuildThisFileDirectory)LockFree\TestLockFreeStack.cs"/>
         <Compile Include="$(MSBuildThisFileDirectory)TestBiDirectionalDictionary.cs"/>
+        <Compile Include="$(MSBuildThisFileDirectory)TestDefaultDictionary.cs"/>
         <Compile Include="$(MSBuildThisFileDirectory)TestHistory.cs"/>
         <Compile Include="$(MSBuildThisFileDirectory)TestPool.cs"/>
         <Compile Include="$(MSBuildThisFileDirectory)TestSizeLimitedList.cs"/>

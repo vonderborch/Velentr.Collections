@@ -7,7 +7,8 @@ namespace Velentr.Collections;
 [DebuggerDisplay("Count = {Count}, Current Position = {CurrentPosition}, Can Undo = {CanUndo}, Can Redo = {CanRedo}")]
 public class History<T>(int maxHistoryItems = 32) : ICollection<T>
 {
-    private readonly SizeLimitedList<T> internalList = new(maxHistoryItems, actionWhenFull: SizeLimitedCollectionFullAction.PopOldestItem);
+    private readonly SizeLimitedList<T> internalList =
+        new(maxHistoryItems, SizeLimitedCollectionFullAction.PopOldestItem);
 
     /// <summary>
     ///     Gets a value indicating whether a redo operation can be performed.

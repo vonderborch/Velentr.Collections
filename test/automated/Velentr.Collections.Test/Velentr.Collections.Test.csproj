@@ -11,8 +11,8 @@
         <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
         <ApplicationIcon>..\..\..\logo.ico</ApplicationIcon>
-        <AssemblyVersion>3.0.1.3</AssemblyVersion>
-        <FileVersion>3.0.1.3</FileVersion>
+        <AssemblyVersion>3.1.0.7</AssemblyVersion>
+        <FileVersion>3.1.0.7</FileVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -37,7 +37,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\source\Velentr.Collections\Velentr.Collections.csproj" />
+        <ProjectReference Include="..\..\..\source\Velentr.Collections\Velentr.Collections.csproj"/>
     </ItemGroup>
 
     <Import Project="..\Velentr.Collections.Shared.Test\Velentr.Collections.Shared.Test.projitems" Label="Shared"/>

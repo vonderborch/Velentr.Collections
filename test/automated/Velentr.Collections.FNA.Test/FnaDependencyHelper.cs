@@ -1,20 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace Velentr.INDIVIDUAL_SUPPORT.Test;
 
 /// <summary>
-/// A helper for FNA dependencies.
+///     A helper for FNA dependencies.
 /// </summary>
 public static class FnaDependencyHelper
 {
     /// <summary>
-    /// The default platform map.
+    ///     The default platform map.
     /// </summary>
-    private static Dictionary<Architecture, Dictionary<OSPlatform, string>> DefaultPlatformMap = new()
+    private static readonly Dictionary<Architecture, Dictionary<OSPlatform, string>> DefaultPlatformMap = new()
     {
         [Architecture.X64] = new Dictionary<OSPlatform, string>
         {
@@ -33,7 +30,7 @@ public static class FnaDependencyHelper
     };
 
     /// <summary>
-    /// Moves the FNA dependencies to the correct location based on the current OS and architecture.
+    ///     Moves the FNA dependencies to the correct location based on the current OS and architecture.
     /// </summary>
     /// <param name="platformMap">An optional platform DLL map.</param>
     /// <param name="vulkanPath">The path to the MoltenVK ICD.</param>
@@ -41,15 +38,15 @@ public static class FnaDependencyHelper
     public static void HandleDependencies(Dictionary<Architecture, Dictionary<OSPlatform, string>>? platformMap = null,
         string vulkanPath = "vulkan")
     {
-        var map = platformMap ?? DefaultPlatformMap;
+        Dictionary<Architecture, Dictionary<OSPlatform, string>> map = platformMap ?? DefaultPlatformMap;
 
-        var architecture = RuntimeInformation.OSArchitecture;
-        if (!map.TryGetValue(architecture, out var operatingSystems))
+        Architecture architecture = RuntimeInformation.OSArchitecture;
+        if (!map.TryGetValue(architecture, out Dictionary<OSPlatform, string>? operatingSystems))
         {
             throw new PlatformNotSupportedException();
         }
 
-        foreach (var (os, path) in operatingSystems)
+        foreach ((OSPlatform os, var path) in operatingSystems)
         {
             if (RuntimeInformation.IsOSPlatform(os))
             {
@@ -62,7 +59,7 @@ public static class FnaDependencyHelper
     }
 
     /// <summary>
-    /// Moves the DLLs from the specified path to the executing assembly path.
+    ///     Moves the DLLs from the specified path to the executing assembly path.
     /// </summary>
     /// <param name="path">The DLL directory path.</param>
     /// <exception cref="DirectoryNotFoundException">Raised if we can't find the DLL directory.</exception>

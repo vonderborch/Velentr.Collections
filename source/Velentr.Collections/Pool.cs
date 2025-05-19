@@ -34,6 +34,11 @@ public class Pool<T> : IPool<T>
     private const bool IS_USED = !IS_FREE;
 
     /// <summary>
+    ///     The history of when indexes were used in the pool.
+    /// </summary>
+    private readonly History<int> indexHistory;
+
+    /// <summary>
     ///     The internal data structure storing the pool entries.
     /// </summary>
     private readonly List<InternalPoolEntry<T>> internalStructure;
@@ -42,11 +47,6 @@ public class Pool<T> : IPool<T>
     ///     The number of items in the pool.
     /// </summary>
     private int count;
-
-    /// <summary>
-    ///     The history of when indexes were used in the pool.
-    /// </summary>
-    private readonly History<int> indexHistory;
 
     /// <summary>
     ///     The version of the pool. Used to track changes to the pool.
